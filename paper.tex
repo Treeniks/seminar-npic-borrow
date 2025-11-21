@@ -1,0 +1,74 @@
+\documentclass[sigplan,11pt,screen,nonacm]{acmart}
+\settopmatter{printfolios}
+
+\usepackage{booktabs} % For formal tables
+\usepackage{subcaption}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{hyphenat}
+\usepackage{tabularx}
+\usepackage[babel]{csquotes}
+
+
+\begin{document}
+\title{A Beach Mode for x86 CPUs}
+\author{Best Student}
+\affiliation{%
+  \institution{Technical University of Munich}
+  \country{Germany}
+}
+\email{best@example.com}
+
+\begin{abstract}
+In recent years, beaches have gained an increasing importance in the selection of vacation places. However, the lack of beach-readiness of conventional computers prevented programmers from working during their holidays. While the advent of beach computers provides programmers with suitable hardware devices, the lack of proper support in the CPU's instruction set remains. Therefore, in this paper, we propose a novel beach mode for x86 that provides alternative beach-related semantics to the conventional instructions. Our new mode is binary-compatible, so that existing programs can transparently execute with the beach-optimized semantics without requiring re-compilation. The beachmark results indicate an increase in fun by 2.43x at the expense of some computational correctness.
+\end{abstract}
+
+% If you like to...
+%\keywords{Beach, Computers, History}
+
+\maketitle
+
+\section{Introduction}
+\label{sec:introduction}
+
+Beaches are a very natural part of countries and are especially useful for vacation. However, even when on travel, programmers obviously do not want to live without computers. This led to the development of \emph{beach computers}. This type of computers was introduced in 1970 by Some Inventor~\cite{intel2019man} % <-- some totally random reference
+to satisfy needs of programmers, but also to boost increase their vacation productivity.
+
+We go one step further and introduce modified semantics for instructions of beach computers to increase the fun and therefore productivity level of developers. We introduce a novel \emph{beach mode} to conventional x86 processors, in which certain instructions have modified semantics. \autoref{tab:insns} summarizes important instructions.
+
+\textit{To be continued...}
+
+\section{Summary \& Outlook}
+\label{sec:summary}
+
+Oh, and here goes the summary. Future work is expected in water computers so that programmers can also be productive while swimming.
+
+\begin{table}
+    \caption{Summary of important beach-related x86 instructions~\cite{intel2019man} introduced in this paper.}
+    \label{tab:insns}
+    \begin{tabularx}{\linewidth}{lX}
+        \toprule
+        Mnemonic & Description \\
+        \midrule
+        \texttt{aad} & Arrive after dinner \\
+        \texttt{add} & Arrive during day \\
+        \texttt{ffree} & Float free on the water \\
+        \texttt{fsub} & Float towards submarine \\
+        \texttt{iret} & Return to island \\
+        \texttt{leave} & Leave island \\
+        \texttt{packuswb} & Pack your stuff with both hands \\
+        \texttt{packsswb} & Pack someones stuff with both hands \\
+        \texttt{rol}/\texttt{ror} & Rotate left/right on the beach \\
+        \texttt{serialize} & Ensure that people enqueued at the ice cream stand form a single line \\
+        \texttt{sub} & Enter emerging submarine \\
+        \texttt{tilerelease} & Release used beach region \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{paper} % read paper.bib file
+
+\end{document}
