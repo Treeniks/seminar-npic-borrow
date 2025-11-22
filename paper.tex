@@ -1,19 +1,14 @@
-
 % LTeX: enabled=false
 
 \documentclass[sigplan,11pt,screen,nonacm]{acmart}
 \settopmatter{printfolios}
 
-\usepackage{booktabs} % For formal tables
-\usepackage{subcaption}
-\usepackage{tikz}
-\usepackage{pgfplots}
-\usepackage{pgfplotstable}
-\usepackage{hyphenat}
-\usepackage{tabularx}
-\usepackage[babel]{csquotes}
-
 \usepackage{lipsum}
+
+\usepackage{subcaption}
+\usepackage{hyphenat}
+\usepackage{bussproofs}
+\usepackage[babel]{csquotes}
 
 \begin{document}
 \title{Linear Types and a Lifetime of Borrows}
@@ -35,24 +30,59 @@
 
 \section{Introduction} \label{sec:introduction}
 
-In the 2025 stack overflow survey, the Rust programming language continues to be the most admired programming language, ~65000 lines of Rust code have already made it into the Linux source code, and Ubuntu is considering replacing the GNU coreutils with uutils, a Rust rewrite.
+The Rust programming language continues to be the most admired programming language in the 2025 stack overflow developer survey, ~65000 lines of Rust code have already made it into the Linux source code, and Ubuntu is considering replacing the GNU coreutils with uutils, a Rust rewrite.
 % https://youtu.be/HX0GH-YJbGw?si=lStGiyWTUgaOm_0D&t=600
 % https://discourse.ubuntu.com/t/carefully-but-purposefully-oxidising-ubuntu/56995
 
 These accomplishments are, in part, due to Rust's unique blend of low-level systems programming and an expressive type system, which have been fairly exclusive features in the past. At the heart of Rust's type system lies the theory of substructural types.
 
-While Rust itself is technically an affine type system, this paper will actually look at it through the lens of linear types. To that end, we will first introduce the theoretical background of intuitionistic logic and its correspondence to type systems through the Curry-Howard isomorphism. We will further examine XX(LINEAR LOGIC DUDE NAME HERE)XX's linear logic and apply a similar isomorphism to introduce the notion of linear types.
+While Rust itself is technically an \emph{affine} type system, this paper will look at it through the lens of \emph{linear} types. To that end, we will first introduce the theoretical background of intuitionistic logic and its correspondence to type systems through the Curry-Howard isomorphism. We will further examine XX(LINEAR LOGIC DUDE NAME HERE)XX's linear logic and apply a similar isomorphism to introduce the notion of linear types.
 
-After covering the theoretical side of things, we will take Rust as a kind of case study of a real world application of linear types through Rust's ownership model. (TODO write here about capability passing style maybe? although maybe we move that subsection earlier to the \ref{sec:linear:types}) (TODO write about borrowing, lifetimes and polonius).
+After covering the theoretical side of things, we will take Rust as a kind of case study of a real world application of linear types through Rust's ownership model. (TODO write here about capability passing style maybe? although maybe we move that subsection earlier to \ref{sec:linear:types}) (TODO write about borrowing, lifetimes and polonius).
 
 \section{The Theory of Logic and Types} \label{sec:theory}
 
-Type systems and mathematical logic have unintuitively deep ties. The notion of type inference in modern languages is based mostly on Hindley-Milner type systems, its name originating from the fact that Hindley (a logician) and Milner (a computer scientist) found the same system independently of one another. Hence, to talk about the theory types, we must first have a peek at the theory of logic.
+Type systems and mathematical logic have unintuitively deep ties. The notion of type inference in modern languages is based mostly on Hindley-Milner type systems, its name originating from the fact that Hindley (a logician) and Milner (a computer scientist) found the same system independently of one another. Hence, to talk about the theory of types, we must first have a peek at the theory of logic.
 
 \subsection{Intuitionistic Logic} \label{sec:intuitionistic:logic}
 
-Since we are mostly concerned with getting a feel for linear logic, we will not describe a fully functional and complete logic here. Instead, we will use a slimmed down version of the logic used by Philip Wadler (TODO ref here) which is based on natural deduction.
+Logic, in its purest form, serves to define a common language of mathematical proofs. Formalization of logic then serves as a way to make reasoning about proofs possible. One such formalization is intuitionistic logic, and its proofs are in the form of natural deduction.
+% https://link.springer.com/book/10.1007/b115304
 
+Since we are mostly concerned with general concepts, we will only view a reduced version of the logic used by Philip Wadler (TODO ref here). The rules we will work with are seen in \autoref{fig:intuitionistic:logic:nd}.
+
+\begin{figure*}
+  \begin{prooftree}
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(A \vdash A\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Delta, \Gamma \vdash A\)}
+    \RightLabel{Exchange}
+    \UnaryInfC{\(\Gamma, \Delta \vdash A\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma, A, A \vdash B\)}
+    \RightLabel{Contraction}
+    \UnaryInfC{\(\Gamma, A \vdash B\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma \vdash B\)}
+    \RightLabel{Weakening}
+    \UnaryInfC{\(\Gamma, A \vdash B\)}
+  \end{prooftree}
+
+  \begin{prooftree}
+    \AxiomC{\(\Gamma, A \vdash B\)}
+    \RightLabel{\(\rightarrow\)-I}
+    \UnaryInfC{\(\Gamma \vdash A \rightarrow B\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma \vdash A \rightarrow B\)}
+    \AxiomC{\(\Delta \vdash A\)}
+    \RightLabel{\(\rightarrow\)-E}
+    \BinaryInfC{\(\Gamma, \Delta \vdash B\)}
+  \end{prooftree}
+
+  \caption{Intuitionistic Logic -- Natural Deduction} \label{fig:intuitionistic:logic:nd}
+\end{figure*}
 TODO grammar and logic rules
 
 TODO maybe explain natural deduction?
