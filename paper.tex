@@ -1,3 +1,6 @@
+
+% LTeX: enabled=false
+
 \documentclass[sigplan,11pt,screen,nonacm]{acmart}
 \settopmatter{printfolios}
 
@@ -10,63 +13,75 @@
 \usepackage{tabularx}
 \usepackage[babel]{csquotes}
 
+\usepackage{lipsum}
 
 \begin{document}
-\title{A Beach Mode for x86 CPUs}
-\author{Best Student}
+\title{Linear Types and a Lifetime of Borrows}
+% LTeX: dictionary+=Lindae
+\author{Thomas Lindae}
 \affiliation{%
   \institution{Technical University of Munich}
   \country{Germany}
 }
-\email{best@example.com}
+\email{thomas.lindae@in.tum.de}
+
+% LTeX: enabled=true
 
 \begin{abstract}
-In recent years, beaches have gained an increasing importance in the selection of vacation places. However, the lack of beach-readiness of conventional computers prevented programmers from working during their holidays. While the advent of beach computers provides programmers with suitable hardware devices, the lack of proper support in the CPU's instruction set remains. Therefore, in this paper, we propose a novel beach mode for x86 that provides alternative beach-related semantics to the conventional instructions. Our new mode is binary-compatible, so that existing programs can transparently execute with the beach-optimized semantics without requiring re-compilation. The beachmark results indicate an increase in fun by 2.43x at the expense of some computational correctness.
+  \lipsum[1]
 \end{abstract}
-
-% If you like to...
-%\keywords{Beach, Computers, History}
 
 \maketitle
 
-\section{Introduction}
-\label{sec:introduction}
+\section{Introduction} \label{sec:introduction}
 
-Beaches are a very natural part of countries and are especially useful for vacation. However, even when on travel, programmers obviously do not want to live without computers. This led to the development of \emph{beach computers}. This type of computers was introduced in 1970 by Some Inventor~\cite{intel2019man} % <-- some totally random reference
-to satisfy needs of programmers, but also to boost increase their vacation productivity.
+In the 2025 stack overflow survey, the Rust programming language continues to be the most admired programming language, ~65000 lines of Rust code have already made it into the Linux source code, and Ubuntu is considering replacing the GNU coreutils with uutils, a Rust rewrite.
+% https://youtu.be/HX0GH-YJbGw?si=lStGiyWTUgaOm_0D&t=600
+% https://discourse.ubuntu.com/t/carefully-but-purposefully-oxidising-ubuntu/56995
 
-We go one step further and introduce modified semantics for instructions of beach computers to increase the fun and therefore productivity level of developers. We introduce a novel \emph{beach mode} to conventional x86 processors, in which certain instructions have modified semantics. \autoref{tab:insns} summarizes important instructions.
+These accomplishments are, in part, due to Rust's unique blend of low-level systems programming and an expressive type system, which have been fairly exclusive features in the past. At the heart of Rust's type system lies the theory of substructural types.
 
-\textit{To be continued...}
+While Rust itself is technically an affine type system, this paper will actually look at it through the lens of linear types. To that end, we will first introduce the theoretical background of intuitionistic logic and its correspondence to type systems through the Curry-Howard isomorphism. We will further examine XX(LINEAR LOGIC DUDE NAME HERE)XX's linear logic and apply a similar isomorphism to introduce the notion of linear types.
 
-\section{Summary \& Outlook}
-\label{sec:summary}
+After covering the theoretical side of things, we will take Rust as a kind of case study of a real world application of linear types through Rust's ownership model. (TODO write here about capability passing style maybe? although maybe we move that subsection earlier to the \ref{sec:linear:types}) (TODO write about borrowing, lifetimes and polonius).
 
-Oh, and here goes the summary. Future work is expected in water computers so that programmers can also be productive while swimming.
+\section{The Theory of Logic and Types} \label{sec:theory}
 
-\begin{table}
-    \caption{Summary of important beach-related x86 instructions~\cite{intel2019man} introduced in this paper.}
-    \label{tab:insns}
-    \begin{tabularx}{\linewidth}{lX}
-        \toprule
-        Mnemonic & Description \\
-        \midrule
-        \texttt{aad} & Arrive after dinner \\
-        \texttt{add} & Arrive during day \\
-        \texttt{ffree} & Float free on the water \\
-        \texttt{fsub} & Float towards submarine \\
-        \texttt{iret} & Return to island \\
-        \texttt{leave} & Leave island \\
-        \texttt{packuswb} & Pack your stuff with both hands \\
-        \texttt{packsswb} & Pack someones stuff with both hands \\
-        \texttt{rol}/\texttt{ror} & Rotate left/right on the beach \\
-        \texttt{serialize} & Ensure that people enqueued at the ice cream stand form a single line \\
-        \texttt{sub} & Enter emerging submarine \\
-        \texttt{tilerelease} & Release used beach region \\
-        \bottomrule
-    \end{tabularx}
-\end{table}
+Type systems and mathematical logic have unintuitively deep ties. The notion of type inference in modern languages is based mostly on Hindley-Milner type systems, its name originating from the fact that Hindley (a logician) and Milner (a computer scientist) found the same system independently of one another. Hence, to talk about the theory types, we must first have a peek at the theory of logic.
 
+\subsection{Intuitionistic Logic} \label{sec:intuitionistic:logic}
+
+Since we are mostly concerned with getting a feel for linear logic, we will not describe a fully functional and complete logic here. Instead, we will use a slimmed down version of the logic used by Philip Wadler (TODO ref here) which is based on natural deduction.
+
+TODO grammar and logic rules
+
+TODO maybe explain natural deduction?
+
+Of particular interest for us are the Contraction and Weakening rules. Contraction being the ability to duplicate truths as much as we like, while Weakening is the ability to forget truths.
+
+\subsection{Intuitionistic Types} \label{sec:intuitionistic:types}
+
+Curry–Howard correspondence
+
+\subsection{Linear Logic} \label{sec:linear:logic}
+
+\subsection{Linear Types} \label{sec:linear:types}
+
+\section{The Real World of Rust} \label{sec:real-world}
+
+\subsection{Rust's Ownership Model}
+
+\subsection{Capability Passing Style}
+
+\subsection{Borrowing}
+
+\subsection{Lifetimes}
+
+\subsubsection{Non-Lexical Lifetimes}
+
+\subsection{Polonius}
+
+\section{Summary}
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{paper} % read paper.bib file
