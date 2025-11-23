@@ -52,7 +52,17 @@ Type systems and mathematical logic have unintuitively deep ties. The notion of 
 Logic, in its purest form, serves to define a common language of mathematical proofs. Formalization of logic then serves as a way to make reasoning about proofs possible. One such formalization is intuitionistic logic, and its proofs are in the form of natural deduction.
 % https://link.springer.com/book/10.1007/b115304
 
-Since we are mostly concerned with general concepts, we will only view a reduced version of the logic used by Philip Wadler (TODO ref here). We write \(\Gamma \vdash A\) (read \enquote{\(\Gamma\) entails \(B\)}), in which \(\Gamma\) is some set of propositions (which we will call context) and \(B\) is a single proposition, to convey that, given that the propositions in \(\Gamma\) are true, \(B\) is also true. To do logical reasoning, we the need rules for such reasoning, the likes of which are seen in \autoref{fig:intuitionistic:logic:nd}.
+Since we are mostly concerned with general concepts, we will only view a reduced version of the logic used by Philip Wadler (TODO ref here). Its grammar can be seen in \autoref{fig:intuitionistic:logic:grammar}. For the sake of simplicity, we exclude \emph{disjunctive} connectives (\(\lor\)). 
+
+\begin{figure}[H]
+  \begin{bnf}
+    \(A, B, C\) : Proposition ::= \(X\) : Variable | \(A \rightarrow B\) : Implication | \(A \land B\) : Conjunction
+  \end{bnf}
+
+  \caption{Intuitionistic Logic Grammar} \label{fig:intuitionistic:logic:grammar}
+\end{figure}
+
+We write \(\Gamma \vdash A\) (read \enquote{\(\Gamma\) entails \(A\)}), in which \(\Gamma\) is some set of propositions (which we will call context) and \(A\) is a single proposition, to convey that, given that the propositions in \(\Gamma\) are true, \(A\) is also true. To do logical reasoning, we the need rules for such reasoning, the likes of which are seen in \autoref{fig:intuitionistic:logic:nd}.
 
 \begin{figure*}
   \begin{prooftree}
@@ -99,7 +109,7 @@ Since we are mostly concerned with general concepts, we will only view a reduced
   \caption{Intuitionistic Logic -- Natural Deduction} \label{fig:intuitionistic:logic:nd}
 \end{figure*}
 
-\begin{figure}
+\begin{figure}[H]
   \begin{prooftree}
     \AxiomC{}
     \RightLabel{Id}
@@ -126,10 +136,10 @@ Since we are mostly concerned with general concepts, we will only view a reduced
     \UnaryInfC{\(A \rightarrow B, A \vdash A \land B\)}
   \end{prooftree}
 
-  \caption{Proof of \(A \rightarrow B, A \vdash A \land B\)} \label{fig:intuitionistic:logic:proof}
+  \captionof{figure}{Proof of \(A \rightarrow B, A \vdash A \land B\)} \label{fig:intuitionistic:logic:proof}
 \end{figure}
 
-For the sake of simplicity, we exclude \emph{disjunctive} connectives (\(\lor\)). What we're left with is the \emph{axiom} Id, the three \emph{structural} rules Exchange, Contraction and Weakening, and \emph{logical} rules for \emph{implications} (\(\rightarrow\)-I and \(\rightarrow\)-E) and \emph{conjunctives} (\(\land\)-I and \(\land\)-E). Note also that many other equivalent formulations exist, including ones that don't require explicit structural rules, but the one presented here makes the transition to linear types easier.
+We have the \emph{axiom} Id, the three \emph{structural} rules Exchange, Contraction and Weakening, and \emph{logical} rules for \emph{implications} (\(\rightarrow\)-I and \(\rightarrow\)-E) and \emph{conjunctives} (\(\land\)-I and \(\land\)-E). Note also that many other equivalent formulations exist, including ones that don't require explicit structural rules, but the one presented here makes the transition to linear types easier.
 
 A rule like these describes a step of logical reasoning. The core idea is that, when the things above the line hold, the things below the line hold as well. Hence, there are two ways to interpret a rule:
 \begin{description}
@@ -146,17 +156,122 @@ Of particular interest for us are the Contraction and Weakening rules. Contracti
 
 \subsection{Intuitionistic Types} \label{sec:intuitionistic:types}
 
-We will now move away from logic and into the theory of computation and types. To talk about types we first need a programming language, for which we will use a small, limited and typed lambda calculus, the grammar of which can be seen in \autoref{fig:intuitionistic:types:grammar}.
+We will now move away from logic and into the theory of computation and types. To talk about types we first need a programming language, for which we will use a small, limited and typed lambda calculus, the grammar of which can be seen in \autoref{fig:intuitionistic:types:grammar}. We write \(t : \alpha\) to denote that term \(t\) has type \(\alpha\).
 
-\begin{figure}
-  \begin{bnf}
-    \(s,t,u,v,w\) ::= \(x\)
-    | \(\lambda x\ldotp u\) // \(s\ t\)
-    | \((t, u)\) // let \((x, y) = s\) in \(v\)
-  \end{bnf}
+\begin{figure*}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \begin{bnf}
+      \(s,t,u,v,w\) : Term ::= \(x\) : Variable
+      | \(\lambda x\ldotp s\) : Function Definition | \(s\ t\) : Function Application
+      | \((u, v)\) : Tuple Definition | let \((x, y) = t\) in \(w\) : Tuple Destructuring
+    \end{bnf}
 
-  \caption{Grammar of intuitionistic terms} \label{fig:intuitionistic:types:grammar}
-\end{figure}
+    \caption{Intuitionistic Terms}
+  \end{subfigure}
+
+  \begin{subfigure}{\textwidth}
+    \centering
+    \begin{bnf}
+      \(\tau, \pi, \omega\) : Type ::= \(T\) : Base Type
+      | \(\tau \rightarrow \pi\) : Functions
+      | \(\pi \times \omega\) : Tuple
+    \end{bnf}
+
+    \caption{Intuitionistic Types}
+  \end{subfigure}
+
+  \caption{Grammar of Untyped Lambda Calculus} \label{fig:intuitionistic:types:grammar}
+\end{figure*}
+
+Similarly to when we defined natural deduction rules to define the notion of logical reasoning, here we will define typing judgements which outline what types certain terms have. We write \(\Gamma \vdash t : \tau\) to say that, under the typing context \(\Gamma\), the term \(t\) has type \(\tau\) (and hence \(t\) is well typed). Typing contexts are a list of assignments from variables to types \(x_0 : \tau_0, x_1 : \tau_1 \dots x_n : \tau_n\). The judgement rules can be seen in \autoref{fig:intuitionistic:types:judgements}.
+
+\begin{figure*}
+  \begin{prooftree}
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(x : \tau \vdash x : \tau\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Delta, \Gamma \vdash t : \tau\)}
+    \RightLabel{Exchange}
+    \UnaryInfC{\(\Gamma, \Delta \vdash t: \tau\)}
+  \end{prooftree}
+
+  \begin{prooftree}
+    \AxiomC{\(\Gamma, y : \tau, z : \tau \vdash u : \pi\)}
+    \RightLabel{Contraction}
+    \UnaryInfC{\(\Gamma, x : \tau \vdash u[x/y,x/z] : \pi\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma \vdash s : \pi\)}
+    \RightLabel{Weakening}
+    \UnaryInfC{\(\Gamma, x : \tau \vdash s : \pi\)}
+  \end{prooftree}
+
+  \begin{prooftree}
+    \AxiomC{\(\Gamma, x : \tau \vdash t : \pi\)}
+    \RightLabel{\(\rightarrow\)-I}
+    \UnaryInfC{\(\Gamma \vdash \lambda x\ldotp t : \tau \rightarrow \pi\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma \vdash s : \tau \rightarrow \pi\)}
+    \AxiomC{\(\Delta \vdash t : \tau\)}
+    \RightLabel{\(\rightarrow\)-E}
+    \BinaryInfC{\(\Gamma, \Delta \vdash s\ t : \pi\)}
+  \end{prooftree}
+
+  \begin{prooftree}
+    \AxiomC{\(\Gamma \vdash u : \tau\)}
+    \AxiomC{\(\Delta \vdash v : \pi\)}
+    \RightLabel{\(\times\)-I}
+    \BinaryInfC{\(\Gamma, \Delta \vdash (u, v) : \tau \times \pi\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma \vdash t : \tau \times \pi\)}
+    \AxiomC{\(\Delta, x : \tau, y : \pi \vdash w : \omega\)}
+    \RightLabel{\(\times\)-E}
+    \BinaryInfC{\(\Gamma, \Delta \vdash \text{ let } (x, y) = t \text{ in } w : \omega\)}
+  \end{prooftree}
+
+  \caption{Intuitionistic Types – Judgements} \label{fig:intuitionistic:types:judgements}
+\end{figure*}
+
+As before, we can use these judgements to typecheck terms (under typing contexts) like \[f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\] shown in \autoref{fig:intuitionistic:types:proof}.
+
+\begin{figure*}
+  \begin{prooftree}
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(z : \tau \vdash z : \tau\)}
+
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(f : \tau \rightarrow \pi \vdash f : \tau \rightarrow \pi\)}
+
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(y : \tau \vdash y : \tau\)}
+
+    \RightLabel{\(\rightarrow\)-E}
+    \BinaryInfC{\(f : \tau \rightarrow \pi, z : \tau \vdash f\ z : \pi\)}
+
+    \RightLabel{\(\times\)-I}
+    \BinaryInfC{\(y : \tau, f : \tau \rightarrow \pi, z : \tau \vdash (y, f\ z) : \tau \times \pi\)}
+
+    \RightLabel{Exchange}
+    \UnaryInfC{\(f : \tau \rightarrow \pi, y : \tau, z : \tau \vdash (y, f\ z) : \tau \times \pi\)}
+
+    \RightLabel{Contraction}
+    \UnaryInfC{\(f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\)}
+  \end{prooftree}
+
+  \captionof{figure}{Proof of \(f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\)} \label{fig:intuitionistic:types:proof}
+\end{figure*}
+
+\subsubsection{Curry-Howard correspondence}
+
+Astute readers, or those who have seen the Curry-Howard correspondence before, will have noticed that both the judgements in \autoref{fig:intuitionistic:types:judgements} as well as the example proof presented in \autoref{fig:intuitionistic:types:proof} are effectively identical to those in \autoref{fig:intuitionistic:logic:nd} and \autoref{fig:intuitionistic:logic:proof} respectively.
+
+This is the discovery made by (TODO authors Curry-Howard): propositions are types, and terms are proofs. The conjunction (\(A \land B\)) for propositions are pairs (\(\tau \times \pi\)) in the world of terms and types, implications (\(A \rightarrow B\)) are functions (\(\tau \rightarrow \pi\)) and terms uniquely represent a proof tree (modulo certain commutative properties TODO philip wadler ref).
+
+This last point in particular seems magical at first and the correspondence isn't quite as obvious as the others. However, the example we used so far actually shows this connection quite well: The term \((x, f\ x)\) gives significant insight into what a proof of \(A \rightarrow B, A \vdash A \land B\) needs to do. The fact that the variable \(x\) appears twice in the term means there must be a use of the \emph{Contraction} rule, the fact the term is a tuple definition means there must be a use of the \(\land\)\nobreakdash-I rule, and the existence of a function application \(f\ x\) means the proof contains a use of the \(\rightarrow\)\nobreakdash-E rule.
 
 \subsection{Linear Logic} \label{sec:linear:logic}
 
