@@ -4,11 +4,14 @@
 \settopmatter{printfolios}
 
 \usepackage{lipsum}
+\usepackage{amsmath}
 
 \usepackage{subcaption}
 \usepackage{hyphenat}
-\usepackage{bussproofs}
 \usepackage[babel]{csquotes}
+
+\usepackage{bussproofs}
+\usepackage{simplebnf}
 
 \begin{document}
 \title{Linear Types and a Lifetime of Borrows}
@@ -30,7 +33,7 @@
 
 \section{Introduction} \label{sec:introduction}
 
-The Rust programming language continues to be the most admired programming language in the 2025 stack overflow developer survey, ~65000 lines of Rust code have already made it into the Linux source code, and Ubuntu is considering replacing the GNU coreutils with uutils, a Rust rewrite.
+The Rust programming language continues to be the most admired programming language in the 2025 stack overflow developer survey, \(\sim\)65000 lines of Rust code have already made it into the Linux source code, and Ubuntu is considering replacing the GNU coreutils with uutils, a Rust rewrite.
 % https://youtu.be/HX0GH-YJbGw?si=lStGiyWTUgaOm_0D&t=600
 % https://discourse.ubuntu.com/t/carefully-but-purposefully-oxidising-ubuntu/56995
 
@@ -49,7 +52,7 @@ Type systems and mathematical logic have unintuitively deep ties. The notion of 
 Logic, in its purest form, serves to define a common language of mathematical proofs. Formalization of logic then serves as a way to make reasoning about proofs possible. One such formalization is intuitionistic logic, and its proofs are in the form of natural deduction.
 % https://link.springer.com/book/10.1007/b115304
 
-Since we are mostly concerned with general concepts, we will only view a reduced version of the logic used by Philip Wadler (TODO ref here). The rules we will work with are seen in \autoref{fig:intuitionistic:logic:nd}.
+Since we are mostly concerned with general concepts, we will only view a reduced version of the logic used by Philip Wadler (TODO ref here). We write \(\Gamma \vdash A\) (read \enquote{\(\Gamma\) entails \(B\)}), in which \(\Gamma\) is some set of propositions (which we will call context) and \(B\) is a single proposition, to convey that, given that the propositions in \(\Gamma\) are true, \(B\) is also true. To do logical reasoning, we the need rules for such reasoning, the likes of which are seen in \autoref{fig:intuitionistic:logic:nd}.
 
 \begin{figure*}
   \begin{prooftree}
@@ -81,17 +84,79 @@ Since we are mostly concerned with general concepts, we will only view a reduced
     \BinaryInfC{\(\Gamma, \Delta \vdash B\)}
   \end{prooftree}
 
+  \begin{prooftree}
+    \AxiomC{\(\Gamma \vdash A\)}
+    \AxiomC{\(\Delta \vdash B\)}
+    \RightLabel{\(\land\)-I}
+    \BinaryInfC{\(\Gamma, \Delta \vdash A \land B\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma \vdash A \land B\)}
+    \AxiomC{\(\Delta, A, B \vdash C\)}
+    \RightLabel{\(\land\)-E}
+    \BinaryInfC{\(\Gamma, \Delta \vdash C\)}
+  \end{prooftree}
+
   \caption{Intuitionistic Logic -- Natural Deduction} \label{fig:intuitionistic:logic:nd}
 \end{figure*}
-TODO grammar and logic rules
 
-TODO maybe explain natural deduction?
+\begin{figure}
+  \begin{prooftree}
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(A \vdash A\)}
+
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(A \rightarrow B \vdash A \rightarrow B\)}
+
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(A \vdash A\)}
+
+    \RightLabel{\(\rightarrow\)-E}
+    \BinaryInfC{\(A \rightarrow B, A \vdash B\)}
+
+    \RightLabel{\(\land\)-I}
+    \BinaryInfC{\(A, A \rightarrow B, A \vdash A \land B\)}
+
+    \RightLabel{Exchange}
+    \UnaryInfC{\(A \rightarrow B, A, A \vdash A \land B\)}
+
+    \RightLabel{Contraction}
+    \UnaryInfC{\(A \rightarrow B, A \vdash A \land B\)}
+  \end{prooftree}
+
+  \caption{Proof of \(A \rightarrow B, A \vdash A \land B\)} \label{fig:intuitionistic:logic:proof}
+\end{figure}
+
+For the sake of simplicity, we exclude \emph{disjunctive} connectives (\(\lor\)). What we're left with is the \emph{axiom} Id, the three \emph{structural} rules Exchange, Contraction and Weakening, and \emph{logical} rules for \emph{implications} (\(\rightarrow\)-I and \(\rightarrow\)-E) and \emph{conjunctives} (\(\land\)-I and \(\land\)-E). Note also that many other equivalent formulations exist, including ones that don't require explicit structural rules, but the one presented here makes the transition to linear types easier.
+
+A rule like these describes a step of logical reasoning. The core idea is that, when the things above the line hold, the things below the line hold as well. Hence, there are two ways to interpret a rule:
+\begin{description}
+  \item[Top to bottom]
+    If I know the thing at the top holds, I can deduce that the thing at the bottom holds
+  \item[Bottom to top]
+    If I want to show the thing on the bottom, I first need to show the thing at the top
+\end{description}
+The second interpretation becomes particularly relevant when writing proofs. One would starts with the statement one wants to proof, and by applying the rules of natural deduction from bottom to top, it becomes clear what is needed to proof first. The first interpretation on the other hand is how we normally convey proofs to others. One starts with the axioms or known facts, and keeps deriving new facts until the goal is reached.
+
+Actual proofs are usually written as proof trees, where each branch is an instantiation of a rule and leaves are axioms. For example, \autoref{fig:intuitionistic:logic:proof} shows the tree that proofs \(A \rightarrow B, A \vdash A \land B\).
 
 Of particular interest for us are the Contraction and Weakening rules. Contraction being the ability to duplicate truths as much as we like, while Weakening is the ability to forget truths.
 
 \subsection{Intuitionistic Types} \label{sec:intuitionistic:types}
 
-Curry–Howard correspondence
+We will now move away from logic and into the theory of computation and types. To talk about types we first need a programming language, for which we will use a small, limited and typed lambda calculus, the grammar of which can be seen in \autoref{fig:intuitionistic:types:grammar}.
+
+\begin{figure}
+  \begin{bnf}
+    \(s,t,u,v,w\) ::= \(x\)
+    | \(\lambda x\ldotp u\) // \(s\ t\)
+    | \((t, u)\) // let \((x, y) = s\) in \(v\)
+  \end{bnf}
+
+  \caption{Grammar of intuitionistic terms} \label{fig:intuitionistic:types:grammar}
+\end{figure}
 
 \subsection{Linear Logic} \label{sec:linear:logic}
 
