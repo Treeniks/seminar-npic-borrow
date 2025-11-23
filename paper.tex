@@ -271,11 +271,46 @@ Astute readers, or those who have seen the Curry-Howard correspondence before, w
 
 This is the discovery made by (TODO authors Curry-Howard): propositions are types, and terms are proofs. The conjunction (\(A \land B\)) for propositions are pairs (\(\tau \times \pi\)) in the world of terms and types, implications (\(A \rightarrow B\)) are functions (\(\tau \rightarrow \pi\)) and terms uniquely represent a proof tree (modulo certain commutative properties TODO philip wadler ref).
 
-This last point in particular seems magical at first and the correspondence isn't quite as obvious as the others. However, the example we used so far actually shows this connection quite well: The term \((x, f\ x)\) gives significant insight into what a proof of \(A \rightarrow B, A \vdash A \land B\) needs to do. The fact that the variable \(x\) appears twice in the term means there must be a use of the \emph{Contraction} rule, the fact the term is a tuple definition means there must be a use of the \(\land\)\nobreakdash-I rule, and the existence of a function application \(f\ x\) means the proof contains a use of the \(\rightarrow\)\nobreakdash-E rule.
+This last point in particular seems magical at first and the correspondence isn't quite as obvious as the others. However, the example we used so far actually shows this connection quite well: The term \((x, f\ x)\) gives significant insight into what a proof of \[A \rightarrow B, A \vdash A \land B\] needs to do. The fact that the variable \(x\) appears twice in the term means there must be a use of the \emph{Contraction} rule, the fact the term is a tuple definition means there must be a use of the \(\land\)\nobreakdash-I rule, and the existence of a function application \(f\ x\) means the proof contains a use of the \(\rightarrow\)\nobreakdash-E rule.
 
 \subsection{Linear Logic} \label{sec:linear:logic}
 
+% https://www-users.cse.umn.edu/~arnold/502.s97/complex.pdf
+% page 13
+%
+% alts:
+% https://mccuan.math.gatech.edu/courses/6321/lars-ahlfors-complex-analysis-third-edition-mcgraw-hill-science_engineering_math-1979.pdf
+% page 138
+% also page 78 of https://noter.math.ku.dk/koman-12.pdf
+Linear logic is the idea that not all truths are free. With intuitionistic logic, we could duplicate and forget truths as much as we wanted, and in a mathematical sense is what we want. If one proves \emph{Cauchy's estimate}, that theorem can be further used to proof the \emph{Liouville's Theorem}, as well as the \emph{Maximum Modulus Principle}. However, duplication is not free in the real world. If \(A\) means \enquote{I have 60 rupees}, \(B\) means \enquote{I can buy 30 arrows (60 rupees)} and \(C\) means \enquote{I can buy a Deku Shield (40 rupees)}, then \autoref{fig:linear:logic:rupees} shows a proof of how 60 rupees can buy both in intuitionistic logic, by duplicating A. And yet, 60 rupees aren't actually enough to buy both 30 arrows and a Deku Shield.
+
+\begin{figure}[H]
+  \begin{prooftree}
+    \AxiomC{\(A \vdash B\)}
+    \AxiomC{\(A \vdash C\)}
+    \RightLabel{\(\land\)-I}
+    \BinaryInfC{\(A, A \vdash B \land C\)}
+    \RightLabel{Contraction}
+    \UnaryInfC{\(A \vdash B \land C\)}
+  \end{prooftree}
+
+  \captionof{figure}{Proof of \(A \rightarrow B, A \vdash A \land B\)} \label{fig:linear:logic:rupees}
+\end{figure}
+
+The issue is with the Contraction and Weakening rules, both of which linear logic tries to limit. Unfortunately, this is where the details get a bit messy in order for linear logic to remain powerful enough that everything stays expressable. We will hence refrain going into these details and only give an overview.
+
+The core idea is to split propositions into two camps: linear and intuitionistic. Intuitionistic propositions, now denoted \([A]\), work as we know and allow for Contraction and Weakening, while linear propositions, denoted \(\langle A\rangle\), allow everything but Contraction and Weakening. The notation for the logical connectives also changes, and their meaning may now differ.
+
+\(A \rightarrow B\) becomes \(A \multimap B\) and whereas before we could freely convert \(A\) into \(B\), if \(A\) is linear the operation completely consumes our \(A\). \(A \land B\) becomes \(A \otimes B\) and while there is not a big difference in meaning, there are other formulations of conjunctives that are equivalent in intuitionistic logic, but have a profoundly different meaning in linear logic.
+% TODO maybe reference philip wadler again, maybe write a footnote with more detail, or do an appendix with a full explanation?
+
+Note that for our example proof from \autoref{fig:intuitionistic:logic:proof}, if we make the assumption \(A\) linear, we get: \[A \multimap B, \langle A\rangle \vdash A \otimes B\] But this isn't provable anymore, as we would need to duplicate \(\langle A\rangle\).
+
 \subsection{Linear Types} \label{sec:linear:types}
+
+Applying the Curry-Howard correspondence to linear logic, we get a particularly useful type-theoretic concept: Non-duplicatable and non-forgettable values. Taking a look at our example proof once again: \[f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\] The thing of interest is the duplication of \(x\). In a purely theoretical lambda calculus, this may be fine, but in real world programming \(x\) could be anything, including a highly limited resource. If \(x\) is a simple integer, it may be no problem to copy it like that, but if \(x\) is a large array, copying may be an unacceptable performance hit. Even worse, if \(x\) represents some resource like a file, duplication may be catastrophic.
+
+TODO example of Array with new, lookup, update and free
 
 \section{The Real World of Rust} \label{sec:real-world}
 
