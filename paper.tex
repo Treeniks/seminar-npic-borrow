@@ -49,10 +49,9 @@ Type systems and mathematical logic have unintuitively deep ties. The notion of 
 
 \subsection{Intuitionistic Logic} \label{sec:intuitionistic:logic}
 
-Logic provides formal languages and inference rules for precise reasoning. When logic is formalized, proofs become mathematical objects that can be analyzed. Intuitionistic logic is one such formal system. It's primary differentiator from classical logic is the lack of the law of excluded middle. In classical logic, for any proposition \(A\), the formula \(A \lor \lnot A\) is a tautology. In intuitionistic logic, this is not generally provable.
+Logic provides formal languages and inference rules for precise reasoning. When logic is formalized, proofs become mathematical objects that can be analyzed. Intuitionistic logic is one such formal system. It's primary differentiator from classical logic is the lack of the law of excluded middle. In classical logic, for any proposition \(A\), the formula \(A \lor \lnot A\) is a tautology. In intuitionistic logic, this is not generally provable.~\cite{mints-intro-intuitionistic-logic}
 
 With this limitation, intuitionistic logic is a logic of constructive proofs. Classical logic allows proofs of a proposition that don't actually construct a specific witness, proofs by contradiciton being the typical culprit. In intuitionistic logic, one must explicitly provide the corresponding constructive evidence.
-% https://link.springer.com/book/10.1007/b115304
 
 Since we are mostly concerned with general concepts, we will only view a reduced version of the logic used by Philip Wadler (TODO ref here). Its grammar can be seen in \autoref{fig:intuitionistic:logic:grammar}. For the sake of simplicity, we exclude \emph{disjunctive} connectives (\(\lor\)).
 
@@ -286,7 +285,7 @@ We mentioned how intuitionistic logic is a system of constructive proofs in \aut
 % https://mccuan.math.gatech.edu/courses/6321/lars-ahlfors-complex-analysis-third-edition-mcgraw-hill-science_engineering_math-1979.pdf
 % page 138
 % also page 78 of https://noter.math.ku.dk/koman-12.pdf
-Linear logic is the idea that not all truths are free. With intuitionistic logic, we could duplicate and forget truths as much as we wanted, and in a mathematical sense is what we want. If one proves \emph{Cauchy's estimate}, that theorem can be further used to proof \emph{Liouville's Theorem}, as well as the \emph{Maximum Modulus Principle}. However, duplication is not free in the real world. If \(A\) means \enquote{I have 60 rupees}, \(B\) means \enquote{I can buy 30 arrows (60 rupees)} and \(C\) means \enquote{I can buy a Deku Shield (40 rupees)}, then \autoref{fig:linear:logic:rupees} shows a proof of how 60 rupees can buy both in intuitionistic logic by duplicating A. And yet, 60 rupees aren't actually enough to buy both 30 arrows \emph{and} a Deku Shield.
+Linear logic is the idea that not all truths are free. With intuitionistic logic, we could duplicate and forget truths as much as we wanted, and in a mathematical sense, that is what we want. If one proves the \emph{Maximum Modulus Theorem}, that theorem can be further used to proof \emph{Schwarz's Lemma} as well as the \emph{Phragmén-Lindelöf Theorem}~\cite{conway-complex}. We don't somehow lose access to the \emph{Maximum Modulus Theorem} after proving \emph{Schwarz's Lemma}. However, duplication is not free in the real world. If \(A\) means \enquote{I have 60 rupees}, \(B\) means \enquote{I can buy 30 arrows} (that cost 60 rupees total) and \(C\) means \enquote{I can buy a Deku Shield} (which costs 40 rupees), then \autoref{fig:linear:logic:rupees} shows a proof of how 60 rupees can buy both in intuitionistic logic by duplicating \(A\). And yet, 60 rupees aren't actually enough to buy both 30 arrows \emph{and} a Deku Shield.
 
 \begin{figure}[H]
   \begin{prooftree}
