@@ -1,10 +1,8 @@
-tex_engine := "pdflatex"
-tex_flags  := "-interaction=nonstopmode -halt-on-error"
-
 build watch_flag="":
-    latexmk -{{tex_engine}} {{tex_flags}} {{watch_flag}} -outdir="out" -auxdir="out/aux" paper.tex
+    latexmk {{watch_flag}}
 
 watch: (build "-pvc")
 
 clean:
+    latexmk -C
     rm -rf out
