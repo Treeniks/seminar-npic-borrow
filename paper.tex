@@ -63,8 +63,6 @@ Since we are mostly concerned with general concepts, we will only view a reduced
   \caption{Intuitionistic Logic Grammar} \label{fig:intuitionistic:logic:grammar}
 \end{figure}
 
-We write \(\Gamma \vdash A\) (read \enquote{\(\Gamma\) entails \(A\)}), in which \(\Gamma\) is some set of propositions (which we will call context) and \(A\) is a single proposition, to convey that, given that the propositions in \(\Gamma\) are true, \(A\) is also true. To do logical reasoning, we the need rules for such reasoning, the likes of which are seen in \autoref{fig:intuitionistic:logic:nd}.
-
 \begin{figure*}
   \begin{prooftree}
     \AxiomC{}
@@ -110,6 +108,19 @@ We write \(\Gamma \vdash A\) (read \enquote{\(\Gamma\) entails \(A\)}), in which
   \caption{Intuitionistic Logic -- Natural Deduction} \label{fig:intuitionistic:logic:nd}
 \end{figure*}
 
+We write \(\Gamma \vdash A\) (read \enquote{\(\Gamma\) entails \(A\)}), in which \(\Gamma\) is some set of propositions (which we will call context) and \(A\) is a single proposition, to convey that, given that the propositions in \(\Gamma\) are true, \(A\) is also true. To do logical reasoning, we the need rules for such reasoning, the likes of which are seen in \autoref{fig:intuitionistic:logic:nd}.
+
+We have the \emph{axiom} Id, the three \emph{structural} rules Exchange, Contraction and Weakening, and \emph{logical} rules for \emph{implications} (\(\rightarrow\)-I and \(\rightarrow\)-E) and \emph{conjunctives} (\(\land\)-I and \(\land\)-E). Note also that many other equivalent formulations exist, including ones that don't require explicit structural rules, but the one presented here makes the transition to linear types easier.
+
+A rule like these describes a step of logical reasoning. The core idea is that, when the things above the line hold, the things below the line hold as well. Hence, there are two ways to interpret a rule:
+\begin{description}
+  \item[Top to bottom]
+    If I know the thing at the top holds, I can deduce that the thing at the bottom holds
+  \item[Bottom to top]
+    If I want to show the thing on the bottom, I first need to show the thing at the top
+\end{description}
+The second interpretation becomes particularly relevant when writing proofs. One would starts with the statement one wants to proof, and by applying the rules of natural deduction from bottom to top, it becomes clear what is needed to proof first. The first interpretation on the other hand is how we normally convey proofs to others. One starts with the axioms or known facts, and keeps deriving new facts until the goal is reached.
+
 \begin{figure}[H]
   \begin{prooftree}
     \AxiomC{}
@@ -139,17 +150,6 @@ We write \(\Gamma \vdash A\) (read \enquote{\(\Gamma\) entails \(A\)}), in which
 
   \caption{Proof of \(A \rightarrow B, A \vdash A \land B\)} \label{fig:intuitionistic:logic:proof}
 \end{figure}
-
-We have the \emph{axiom} Id, the three \emph{structural} rules Exchange, Contraction and Weakening, and \emph{logical} rules for \emph{implications} (\(\rightarrow\)-I and \(\rightarrow\)-E) and \emph{conjunctives} (\(\land\)-I and \(\land\)-E). Note also that many other equivalent formulations exist, including ones that don't require explicit structural rules, but the one presented here makes the transition to linear types easier.
-
-A rule like these describes a step of logical reasoning. The core idea is that, when the things above the line hold, the things below the line hold as well. Hence, there are two ways to interpret a rule:
-\begin{description}
-  \item[Top to bottom]
-    If I know the thing at the top holds, I can deduce that the thing at the bottom holds
-  \item[Bottom to top]
-    If I want to show the thing on the bottom, I first need to show the thing at the top
-\end{description}
-The second interpretation becomes particularly relevant when writing proofs. One would starts with the statement one wants to proof, and by applying the rules of natural deduction from bottom to top, it becomes clear what is needed to proof first. The first interpretation on the other hand is how we normally convey proofs to others. One starts with the axioms or known facts, and keeps deriving new facts until the goal is reached.
 
 Actual proofs are usually written as proof trees, where each branch is an instantiation of a rule and leaves are axioms. For example, \autoref{fig:intuitionistic:logic:proof} shows the tree that proofs \(A \rightarrow B, A \vdash A \land B\).
 
