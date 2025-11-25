@@ -53,7 +53,7 @@ Logic provides formal languages and inference rules for precise reasoning. When 
 
 With this limitation, intuitionistic logic is a logic of constructive proofs. Classical logic allows proofs of a proposition that don't actually construct a specific witness, proofs by contradiciton being the typical culprit. In intuitionistic logic, one must explicitly provide the corresponding constructive evidence.
 
-Since we are mostly concerned with general concepts, we will only view a reduced version of the logic used by Philip Wadler (TODO ref here). Its grammar can be seen in \autoref{fig:intuitionistic:logic:grammar}. For the sake of simplicity, we exclude \emph{disjunctive} connectives (\(\lor\)).
+Since we are mostly concerned with general concepts, we will only view a reduced version of the logic used by \citet{wadler-linear-taste}. Its grammar can be seen in \autoref{fig:intuitionistic:logic:grammar}. For the sake of simplicity, we exclude \emph{disjunctive} connectives (\(\lor\)).
 
 \begin{figure}[H]
   \begin{bnf}
@@ -268,9 +268,9 @@ As before, we can use these judgements to typecheck terms (under typing contexts
 
 \subsubsection{Curry-Howard correspondence}
 
-Astute readers, or those who have seen the Curry-Howard correspondence before, will have noticed that both the judgements in \autoref{fig:intuitionistic:types:judgements} as well as the example proof presented in \autoref{fig:intuitionistic:types:proof} are effectively identical to those in \autoref{fig:intuitionistic:logic:nd} and \autoref{fig:intuitionistic:logic:proof} respectively.
+Astute readers, or those who have seen the Curry-Howard correspondence before, will have noticed that both the judgements in \autoref{fig:intuitionistic:types:judgements} and the example proof presented in \autoref{fig:intuitionistic:types:proof} are effectively identical to those in \autoref{fig:intuitionistic:logic:nd} and \autoref{fig:intuitionistic:logic:proof} respectively.
 
-This is the discovery made by (TODO authors Curry-Howard): propositions are types, and terms are proofs. The conjunction (\(A \land B\)) for propositions are pairs (\(\tau \times \pi\)) in the world of terms and types, implications (\(A \rightarrow B\)) are functions (\(\tau \rightarrow \pi\)) and terms uniquely represent a proof tree (modulo certain commutative properties TODO philip wadler ref).
+This is the discovery made by Curry and Howard~\cite{curry-combinatory-logic, howard-formalae}: propositions are types, and terms are proofs. The conjunction (\(A \land B\)) for propositions are pairs (\(\tau \times \pi\)) in the world of terms and types, implications (\(A \rightarrow B\)) are functions (\(\tau \rightarrow \pi\)) and terms uniquely represent a proof tree (modulo certain commutative properties~\cite{wadler-linear-taste}).
 
 This last point in particular seems magical at first and the correspondence isn't quite as obvious as the others. However, the example we used so far actually shows this connection quite well: The term \((x, f\ x)\) gives significant insight into what a proof of \[A \rightarrow B, A \vdash A \land B\] needs to do. The fact that the variable \(x\) appears twice in the term means there must be a use of the \emph{Contraction} rule, the fact the term is a tuple definition means there must be a use of the \(\land\)\nobreakdash-I rule, and the existence of a function application \(f\ x\) means the proof contains a use of the \(\rightarrow\)\nobreakdash-E rule.
 
@@ -293,7 +293,7 @@ Linear logic is the idea that not all truths are free. With intuitionistic logic
   \captionof{figure}{Proof of \(A \rightarrow B, A \vdash A \land B\)} \label{fig:linear:logic:rupees}
 \end{figure}
 
-The issue is with the Contraction and Weakening rules, both of which linear logic tries to limit. Unfortunately, this is where the details get a bit messy in order for linear logic to remain powerful enough that everything stays expressable. We will hence refrain going into these details and only give an overview.
+The issue is with the Contraction and Weakening rules, both of which linear logic tries to limit. Unfortunately, this is where the details get a bit messy in order for linear logic to remain powerful enough that everything stays expressible. We will hence refrain going into these details and only give an overview.
 
 The core idea is to split propositions into two camps: linear and intuitionistic. Intuitionistic propositions, now denoted \([A]\), work as we know and allow for Contraction and Weakening, while linear propositions, denoted \(\langle A\rangle\), allow everything but Contraction and Weakening. The notation for the logical connectives also changes, and their meaning may now differ.
 
