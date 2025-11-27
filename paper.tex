@@ -317,7 +317,7 @@ The particularly interesting application is in contexts of manual memory managem
   &\vdash \texttt{free} : *\tau \rightarrow () &
   &\vdash \texttt{store} : *\tau \rightarrow \tau \rightarrow ()
 \end{align*}
-\(*\tau\) represents a pointer to \(\tau\). Interpreting these functions in an intuitionistic manner, we can easily produce a use after free bug:\footnote{\mintinline{text}{let y = t; s} is short for \((\lambda y\ldotp s)\ t\)}
+\(*\tau\) represents a pointer to \(\tau\), and \(()\) represents the unit type. Interpreting these functions in an intuitionistic manner, we can easily produce a use after free bug:\footnote{\mintinline{text}{let y = t; s} is short for \((\lambda y\ldotp s)\ t\)}
 \begin{minted}{text}
 let x = alloc v;
 free x;
@@ -356,7 +356,12 @@ let (x1, w) = load x0;
 free x1 // new x1 so fine
 \end{minted}
 
-The \mintinline{text}{free} function still fully consumes the resource and \(\langle *\tau\rangle\) still \emph{uniquely} owns its memory, yet \mintinline{text}{load} and \mintinline{text}{store} can be reasonably used. This style of programming is not the most ergonomic, and we will see how to improve upon it in \autoref{sec:rust:borrowing}.
+The \mintinline{text}{free} function still fully consumes the resource and \(\langle *\tau\rangle\) still \emph{uniquely} owns its memory, yet \mintinline{text}{load} and \mintinline{text}{store} can be reasonably used. There are two issues with this approach however:
+\begin{enumerate}
+  \item This style of programming is not very ergonomic.
+  \item Nothing prevents the provider of the function from returning completely new unrelated objects.
+\end{enumerate}
+We will discuss how to fix these issues in \autoref{sec:rust:borrowing}.
 
 It is worth noting again that correct theoretical handling of linear logic and types is a bit more involved and this work only shows a simplified view of the topic. \citet{wadler-linear-taste} e.g. goes into further detail.
 
@@ -387,11 +392,45 @@ Note that this code does not violate Weakening. Similar to C++, Rust implicitly 
 
 \subsubsection{Copy Types}
 
-Types implementing the \mintinline{text}{Copy} marker trait represent values stored on the stack, which can be copied cheaply~\cite{rust:book}. While the type system doesn't actually prevent us from implementing \mintinline{text}{Copy} on any type we want, it does prevent us from implemented both \mintinline{text}{Copy} \emph{and} \mintinline{text}{Drop}~\cite{rust:ops-drop} on the same type.
+Types implementing the \mintinline{text}{Copy} marker trait represent values stored on the stack, which can be copied cheaply~\cite[Chapter 4.1]{rust:book}. While the type system doesn't actually prevent us from implementing \mintinline{text}{Copy} on any type we want, it does prevent us from implemented both \mintinline{text}{Copy} \emph{and} \mintinline{text}{Drop}~\cite{rust:ops-drop} on the same type.
+
+If we replace the vector with an integer in the above code, the Rust compiler will accept it:
+\begin{minted}[linenos]{rust}
+let v = 1;
+let w = v; // copies v
+v += 1; // ok because v is Copy
+w += 2;
+\end{minted}
 
 \subsection{Capability Passing Style in Rust} \label{sec:rust:capability-passing-style}
 
+Naively applying the rules of ownership results in a similar problem described in \autoref{sec:theory:capability-passing-style}:
+\begin{minted}[linenos]{rust}
+fn get_len(s: Vec<usize>) -> usize {
+    // ...
+}
+
+let v = vec![];
+let len = get_len(v);
+v.push(1); // error, v was moved
+\end{minted}
+Functions whose arguments are non-Copy types take ownership of those values. If one wants to use a value \emph{after} passing it to a function, the function must return the value:
+\begin{minted}[linenos]{rust}
+fn get_len(s: Vec<usize>)
+    -> (Vec<usize>, usize) {
+    // ...
+}
+
+let v0 = vec![];
+let (v1, len) = get_len(v0);
+v1.push(1); // fine
+\end{minted}
+
+As mentioned in \autoref{sec:theory:capability-passing-style}, not only is this not ergonomic, the signatures of this function isn't very expressive. From \mintinline{text}{get_len}'s type signature alone, it is not clear that the returned vector is the same vector as the input. Nothing prevents \mintinline{text}{get_len} from dropping the provided vector and returning a newly allocated one. The following section describes Rust's approach to this problem.
+
 \subsection{Borrowing} \label{sec:rust:borrowing}
+
+The idea of borrowing builds upon the notion of references from languages like C++. As the name suggests, \emph{borrowing} a value to another piece of code (like a function) allows that other code potentially limited access to the value, without the lender losing ownership.
 
 \subsection{Lifetimes}
 
