@@ -10,6 +10,9 @@
 \usepackage{hyphenat}
 \usepackage[babel]{csquotes}
 
+\usepackage{minted}
+\setminted{xleftmargin=\parindent}
+
 \usepackage{bussproofs}
 \usepackage{simplebnf}
 
@@ -39,7 +42,7 @@ The Rust programming language continues to be the most admired programming langu
 
 These accomplishments are, in part, due to Rust's unique blend of low-level systems programming and an expressive type system, which have been fairly exclusive features in the past. At the heart of Rust's type system lies the theory of substructural types.
 
-While Rust itself is technically an \emph{affine} type system, this paper will look at it through the lens of \emph{linear} types. To that end, we will first introduce the theoretical background of intuitionistic logic and its correspondence to type systems through the Curry-Howard isomorphism. We will further examine XX(LINEAR LOGIC DUDE NAME HERE)XX's linear logic and apply a similar isomorphism to introduce the notion of linear types.
+While Rust itself is technically an \emph{affine} type system, this paper will look at it through the lens of \emph{linear} types. To that end, we will first introduce the theoretical background of intuitionistic logic and its correspondence to type systems through the Curry-Howard isomorphism. We will further examine TODO XX(LINEAR LOGIC DUDE NAME HERE)XX's linear logic and apply a similar isomorphism to introduce the notion of linear types.
 
 After covering the theoretical side of things, we will take Rust as a kind of case study of a real world application of linear types through Rust's ownership model. (TODO write here about capability passing style maybe? although maybe we move that subsection earlier to \ref{sec:linear:types}) (TODO write about borrowing, lifetimes and polonius).
 
@@ -165,7 +168,7 @@ We will now move away from logic and into the theory of computation and types. T
     \begin{bnf}
       \(s,t,u,v,w\) : Term ::= \(x\) : Variable
       | \(\lambda x\ldotp s\) : Function Definition | \(s\ t\) : Function Application
-      | \((u, v)\) : Tuple Definition | let \((x, y) = t\) in \(w\) : Tuple Destructuring
+      | \((u, v)\) : Tuple Definition | let \((x, y) = t\); \(w\) : Tuple Destructuring
     \end{bnf}
 
     \caption{Intuitionistic Terms}
@@ -228,7 +231,7 @@ Similarly to when we defined natural deduction rules to define the notion of log
     \AxiomC{\(\Gamma \vdash t : \tau \times \pi\)}
     \AxiomC{\(\Delta, x : \tau, y : \pi \vdash w : \omega\)}
     \RightLabel{\(\times\)-E}
-    \BinaryInfC{\(\Gamma, \Delta \vdash \text{ let } (x, y) = t \text{ in } w : \omega\)}
+    \BinaryInfC{\(\Gamma, \Delta \vdash \text{ let } (x, y) = t; w : \omega\)}
   \end{prooftree}
 
   \caption{Intuitionistic Types – Judgements} \label{fig:intuitionistic:types:judgements}
@@ -263,7 +266,7 @@ As before, we can use these judgements to typecheck terms (under typing contexts
     \UnaryInfC{\(f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\)}
   \end{prooftree}
 
-  \captionof{figure}{Proof of \(f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\)} \label{fig:intuitionistic:types:proof}
+  \caption{Proof of \(f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\)} \label{fig:intuitionistic:types:proof}
 \end{figure*}
 
 \subsubsection{Curry-Howard correspondence}
@@ -290,12 +293,12 @@ Linear logic is the idea that not all truths are free. With intuitionistic logic
     \UnaryInfC{\(A \vdash B \land C\)}
   \end{prooftree}
 
-  \captionof{figure}{Proof of \(A \rightarrow B, A \vdash A \land B\)} \label{fig:linear:logic:rupees}
+  \caption{Proof of \(A \rightarrow B, A \vdash A \land B\)} \label{fig:linear:logic:rupees}
 \end{figure}
 
-The issue is with the Contraction and Weakening rules, both of which linear logic tries to limit. Unfortunately, this is where the details get a bit messy in order for linear logic to remain powerful enough that everything stays expressible. We will hence refrain going into these details and only give an overview.
+The issue is with the Contraction and Weakening rules, both of which linear logic tries to limit. One could just carelessly remove Contraction and Weakening and call it a day. However, the goal is not just to remove these rules, but also to not lose expressivity. Unfortunately, this is where the details get a bit messy, thus we will only give an overview.
 
-The core idea is to split propositions into two camps: linear and intuitionistic. Intuitionistic propositions, now denoted \([A]\), work as we know and allow for Contraction and Weakening, while linear propositions, denoted \(\langle A\rangle\), allow everything but Contraction and Weakening. The notation for the logical connectives also changes, and their meaning may now differ.
+The core idea is to split propositions into two groups: linear and intuitionistic. Intuitionistic propositions, now denoted \([A]\), work as we know and allow for Contraction and Weakening, while linear propositions, denoted \(\langle A\rangle\), allow everything but Contraction and Weakening. The notation for the logical connectives also changes, and their meaning may now differ.
 
 \(A \rightarrow B\) becomes \(A \multimap B\) and whereas before we could freely convert \(A\) into \(B\), if \(A\) is linear the operation completely consumes our \(A\). \(A \land B\) becomes \(A \otimes B\) and while there is not a big difference in meaning, there are other formulations of conjunctives that are equivalent in intuitionistic logic, but have a profoundly different meaning in linear logic.
 % TODO maybe reference philip wadler again, maybe write a footnote with more detail, or do an appendix with a full explanation?
@@ -304,17 +307,91 @@ Note that for our example proof from \autoref{fig:intuitionistic:logic:proof}, i
 
 \subsection{Linear Types} \label{sec:linear:types}
 
-Applying the Curry-Howard correspondence to linear logic, we get a particularly useful type-theoretic concept: Non-duplicatable and non-forgettable values. Taking a look at our example proof once again: \[f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\] The thing of interest is the duplication of \(x\). In a purely theoretical lambda calculus, this may be fine, but in real world programming \(x\) could be anything, including a highly limited resource. If \(x\) is a simple integer, it may be no problem to copy it like that, but if \(x\) is a large array, copying may be an unacceptable performance hit. Even worse, if \(x\) represents some resource like a file, duplication may be catastrophic.
+Applying the Curry-Howard correspondence to linear logic, we get a particularly useful type-theoretic concept: Non-duplicatable and non-forgettable values. Taking a look at our example proof once again: \[f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\] The thing of interest is the duplication of \(x\). In real world programming, \(x\) could be anything, including a highly limited resource. If \(x\) is a simple integer, it may be no problem to copy it, but if \(x\) is a large array, copying may be an unacceptable performance hit. Even worse, if \(x\) represents some resource like a file, duplication may be catastrophic.
 
-TODO example of Array with new, lookup, update and free
+The particularly interesting application is in contexts of manual memory management. If we define the following functions inspired by \citet{from-linearity-to-borrowing} for allocating and freeing memory, we may be susceptible to various memory related bugs:
+
+\begin{align*}
+  &\vdash \texttt{alloc} : \tau \rightarrow *\tau &
+  &\vdash \texttt{load} : *\tau \rightarrow \tau \\
+  &\vdash \texttt{free} : *\tau \rightarrow () &
+  &\vdash \texttt{store} : *\tau \rightarrow \tau \rightarrow ()
+\end{align*}
+\(*\tau\) represents a pointer to \(\tau\). Interpreting these functions in an intuitionistic manner, we can easily produce a use after free bug:\footnote{\mintinline{text}{let y = t; s} is short for \((\lambda y\ldotp s)\ t\)}
+\begin{minted}{text}
+let x = alloc v;
+free x;
+let w = load x // accessing x after free
+\end{minted}
+
+Contraction allows us to copy the x and use it as many times as we want. Similarly, nothing forces us to actually free the allocation thanks to Weakening. The above code type checks just fine.
+
+However, if we change the type definitions to use linear types:
+\begin{align*}
+  &\vdash \texttt{alloc} : \tau \multimap \langle *\tau\rangle &
+  &\vdash \texttt{load} : \langle *\tau\rangle \multimap \tau \\
+  &\vdash \texttt{free} : \langle *\tau\rangle \multimap () &
+  &\vdash \texttt{store} : \langle *\tau\rangle \multimap \tau \multimap ()
+\end{align*}
+The previous use after free code does \emph{not} typecheck anymore, and a \(\langle *\tau\rangle\) \emph{uniquely} owns its memory. However, there is another problem, as these definitions are practically useless. The following code \emph{also} would not typecheck, because \mintinline{text}{x} \emph{still} occurs twice:
+\begin{minted}{text}
+let x = alloc v;
+let w = load x; // x is consumed here
+free x // does not exist anymore
+\end{minted}
+
+\subsubsection{Capability Passing Style} \label{sec:theory:capability-passing-style}
+
+To fix this issue, the usual solution is using different definitions of our functions utilizing something called \emph{capability passing style}. In this style, functions that do something with a linear value without consuming them need to return the value back to the caller. That slightly changes the definitions of our memory management functions once again:
+\begin{align*}
+  &\vdash \texttt{alloc} : \tau \multimap \langle *\tau\rangle &
+  &\vdash \texttt{load} : \langle *\tau\rangle \multimap \langle *\tau\rangle \otimes \tau \\
+  &\vdash \texttt{free} : \langle *\tau\rangle \multimap () &
+  &\vdash \texttt{store} : \langle *\tau\rangle \multimap \tau \multimap \langle *\tau\rangle
+\end{align*}
+Now the code from before can be written like so:
+\begin{minted}{text}
+let x0 = alloc v;
+let (x1, w) = load x0;
+free x1 // new x1 so fine
+\end{minted}
+
+The \mintinline{text}{free} function still fully consumes the resource and \(\langle *\tau\rangle\) still \emph{uniquely} owns its memory, yet \mintinline{text}{load} and \mintinline{text}{store} can be reasonably used. This style of programming is not the most ergonomic, and we will see how to improve upon it in \autoref{sec:rust:borrowing}.
+
+It is worth noting again that correct theoretical handling of linear logic and types is a bit more involved and this work only shows a simplified view of the topic. \citet{wadler-linear-taste} e.g. goes into further detail.
 
 \section{The Real World of Rust} \label{sec:real-world}
 
+In this section, we will explore how Rust uses and extends the ideas of linear types to achieve its claimed memory safety, while keeping the cost in programming ergonomics low. We will make use of several features implemented in Rust's standard library~\cite{rust:std} for the examples.
+
+Many programming languages implement the ideas behind linear types in some ways. For example, C++'s move constructors and move assignment operators allow smart pointers (like \mintinline{text}{std::vector}) to be used in a linear style. And while there are also languages explicitly implementing linear types~\cite{austral-intro, par-docs}, Rust is probably the most well known application of the concept.
+
+Although that isn't quite accurate. Rust does in fact \emph{not} prevent Weakening. In particular, Rust can create memory leaks, and it is explicitly supported with \mintinline{rust}{std::mem::forget} (although this did cause issues in the past~\cite{rust:poop}). Instead, it is more accurate to categorize Rust's type system as \emph{affine}. Affine logic is linear logic plus Weakening. Alternatively, it is a logic without Contraction.
+
 \subsection{Rust's Ownership Model}
 
-\subsection{Capability Passing Style}
+We mentioned in \autoref{sec:linear:logic} that linear logic doesn't just outright remove intuitionistic propositions, but instead just groups propositions into intuitionistic or linear. This categorization of propositions shows itself in Rust's \mintinline{text}{Copy} trait.\footnote{Traits can be viewed as Rust's type classes.}
 
-\subsection{Borrowing}
+\subsubsection{Non-Copy Types}
+
+Types that don't implement \mintinline{text}{Copy} act like our linear types. To improve ergonomics, Rust uses the notion of \emph{Ownership} and \emph{move-semantics} for values of these types. A variable of a non-Copy type \emph{owns} the corresponding value, and a value of a non-Copy type can only ever have a single owner. In the following, we will use the \mintinline{rust}{std::vec::Vec} type as an exmple for an owned type. The following code will be rejected by Rust's compiler:
+\begin{minted}[linenos]{rust}
+let v = vec![];
+let w = v;
+v.push(1);
+w.push(2);
+\end{minted}
+Line 1 defines the variable \mintinline{text}{v} that is the unique owner of the underlying vector. Line 2 \emph{moves} the value to \mintinline{text}{w}. Rust knows that the ownership of the underlying vector has moved from \mintinline{text}{v} to \mintinline{text}{w}, hence \mintinline{text}{v} cannot be used after Line 2. Line 3 causes an error.
+
+Note that this code does not violate Weakening. Similar to C++, Rust implicitly calls a destructor at the end of a variable's scope. In Rust terminology, this destructor function is called \mintinline{text}{drop}, and \mintinline{text}{std::vec::Vec}'s \mintinline{text}{drop} implementation would free whatever heap memory was allocated for the vector.
+
+\subsubsection{Copy Types}
+
+Types implementing the \mintinline{text}{Copy} marker trait represent values stored on the stack, which can be copied cheaply~\cite{rust:book}. While the type system doesn't actually prevent us from implementing \mintinline{text}{Copy} on any type we want, it does prevent us from implemented both \mintinline{text}{Copy} \emph{and} \mintinline{text}{Drop}~\cite{rust:ops-drop} on the same type.
+
+\subsection{Capability Passing Style in Rust} \label{sec:rust:capability-passing-style}
+
+\subsection{Borrowing} \label{sec:rust:borrowing}
 
 \subsection{Lifetimes}
 
