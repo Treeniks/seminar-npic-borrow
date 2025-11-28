@@ -11,10 +11,15 @@
 \usepackage[babel]{csquotes}
 
 \usepackage{minted}
-\setminted{xleftmargin=\parindent}
+\setminted{autogobble}
+
+\usepackage{tikz}
+\usetikzlibrary{tikzmark, calc, arrows.meta}
 
 \usepackage{bussproofs}
 \usepackage{simplebnf}
+
+\newcommand*{\Copy}{\mintinline{text}{Copy}}
 
 \begin{document}
 \title{Linear Types and a Lifetime of Borrows}
@@ -319,9 +324,9 @@ The particularly interesting application is in contexts of manual memory managem
 \end{align*}
 \(*\tau\) represents a pointer to \(\tau\), and \(()\) represents the unit type. Interpreting these functions in an intuitionistic manner, we can easily produce a use after free bug:\footnote{\mintinline{text}{let y = t; s} is short for \((\lambda y\ldotp s)\ t\)}
 \begin{minted}{text}
-let x = alloc v;
-free x;
-let w = load x // accessing x after free
+  let x = alloc v;
+  free x;
+  let w = load x // accessing x after free
 \end{minted}
 
 Contraction allows us to copy the x and use it as many times as we want. Similarly, nothing forces us to actually free the allocation thanks to Weakening. The above code type checks just fine.
@@ -335,9 +340,9 @@ However, if we change the type definitions to use linear types:
 \end{align*}
 The previous use after free code does \emph{not} typecheck anymore, and a \(\langle *\tau\rangle\) \emph{uniquely} owns its memory. However, there is another problem, as these definitions are practically useless. The following code \emph{also} would not typecheck, because \mintinline{text}{x} \emph{still} occurs twice:
 \begin{minted}{text}
-let x = alloc v;
-let w = load x; // x is consumed here
-free x // does not exist anymore
+  let x = alloc v;
+  let w = load x; // x is consumed here
+  free x // does not exist anymore
 \end{minted}
 
 \subsubsection{Capability Passing Style} \label{sec:theory:capability-passing-style}
@@ -351,9 +356,9 @@ To fix this issue, the usual solution is using different definitions of our func
 \end{align*}
 Now the code from before can be written like so:
 \begin{minted}{text}
-let x0 = alloc v;
-let (x1, w) = load x0;
-free x1 // new x1 so fine
+  let x0 = alloc v;
+  let (x1, w) = load x0;
+  free x1 // new x1 so fine
 \end{minted}
 
 The \mintinline{text}{free} function still fully consumes the resource and \(\langle *\tau\rangle\) still \emph{uniquely} owns its memory, yet \mintinline{text}{load} and \mintinline{text}{store} can be reasonably used. There are two issues with this approach however:
@@ -375,64 +380,202 @@ Although that isn't quite accurate. Rust does in fact \emph{not} prevent Weakeni
 
 \subsection{Rust's Ownership Model}
 
-We mentioned in \autoref{sec:linear:logic} that linear logic doesn't just outright remove intuitionistic propositions, but instead just groups propositions into intuitionistic or linear. This categorization of propositions shows itself in Rust's \mintinline{text}{Copy} trait.\footnote{Traits can be viewed as Rust's type classes.}
+We mentioned in \autoref{sec:linear:logic} that linear logic doesn't just outright remove intuitionistic propositions, but instead just groups propositions into intuitionistic or linear. This categorization of propositions shows itself in Rust's \Copy{} trait.\footnote{Traits can be viewed as Rust's type classes.}
 
-\subsubsection{Non-Copy Types}
+\subsubsection{Non-\Copy{} Types}
 
-Types that don't implement \mintinline{text}{Copy} act like our linear types. To improve ergonomics, Rust uses the notion of \emph{Ownership} and \emph{move-semantics} for values of these types. A variable of a non-Copy type \emph{owns} the corresponding value, and a value of a non-Copy type can only ever have a single owner. In the following, we will use the \mintinline{rust}{std::vec::Vec} type as an exmple for an owned type. The following code will be rejected by Rust's compiler:
+Types that don't implement \Copy{} act like our linear types. To improve ergonomics, Rust uses the notion of \emph{Ownership} and \emph{move-semantics} for values of these types. A variable of a non-\Copy{} type \emph{owns} the corresponding value, and a value of a non-\Copy{} type can only ever have a single owner. In the following, we will use the \mintinline{rust}{std::vec::Vec} type as an exmple for an owned type. The following code will be rejected by Rust's compiler:
 \begin{minted}[linenos]{rust}
-let v = vec![];
-let w = v;
-v.push(1);
-w.push(2);
+  let v = vec![];
+  let w = v;
+  v.push(1);
+  w.push(2);
 \end{minted}
-Line 1 defines the variable \mintinline{text}{v} that is the unique owner of the underlying vector. Line 2 \emph{moves} the value to \mintinline{text}{w}. Rust knows that the ownership of the underlying vector has moved from \mintinline{text}{v} to \mintinline{text}{w}, hence \mintinline{text}{v} cannot be used after Line 2. Line 3 causes an error.
+Line 1 defines the variable \mintinline{text}{v} that is the unique owner of the underlying vector. Line 2 \emph{moves} the value to \mintinline{text}{w}. Rust knows that the ownership of the underlying vector has moved from \mintinline{text}{v} to \mintinline{text}{w}, hence \mintinline{text}{v} cannot be used after line 2. Line 3 causes an error.
 
 Note that this code does not violate Weakening. Similar to C++, Rust implicitly calls a destructor at the end of a variable's scope. In Rust terminology, this destructor function is called \mintinline{text}{drop}, and \mintinline{text}{std::vec::Vec}'s \mintinline{text}{drop} implementation would free whatever heap memory was allocated for the vector.
 
-\subsubsection{Copy Types}
+\subsubsection{\Copy{} Types}
 
-Types implementing the \mintinline{text}{Copy} marker trait represent values stored on the stack, which can be copied cheaply~\cite[Chapter 4.1]{rust:book}. While the type system doesn't actually prevent us from implementing \mintinline{text}{Copy} on any type we want, it does prevent us from implemented both \mintinline{text}{Copy} \emph{and} \mintinline{text}{Drop}~\cite{rust:ops-drop} on the same type.
+Types implementing the \Copy{} marker trait represent values stored on the stack, which can be copied cheaply~\cite[Chapter 4.1]{rust:book}. While the type system doesn't actually prevent us from implementing \Copy{} on any type we want, it does prevent us from implemented both \Copy{} \emph{and} \mintinline{text}{Drop}~\cite{rust:ops-drop} on the same type.
 
 If we replace the vector with an integer in the above code, the Rust compiler will accept it:
 \begin{minted}[linenos]{rust}
-let v = 1;
-let w = v; // copies v
-v += 1; // ok because v is Copy
-w += 2;
+  let v = 1;
+  let w = v; // copies v
+  v += 1; // ok because v is Copy
+  w += 2;
 \end{minted}
 
 \subsection{Capability Passing Style in Rust} \label{sec:rust:capability-passing-style}
 
 Naively applying the rules of ownership results in a similar problem described in \autoref{sec:theory:capability-passing-style}:
 \begin{minted}[linenos]{rust}
-fn get_len(s: Vec<usize>) -> usize {
+  fn get_len(s: Vec<usize>) -> usize {
     // ...
-}
+  }
 
-let v = vec![];
-let len = get_len(v);
-v.push(1); // error, v was moved
+  let v = vec![];
+  let len = get_len(v);
+  v.push(1); // error, v was moved
 \end{minted}
-Functions whose arguments are non-Copy types take ownership of those values. If one wants to use a value \emph{after} passing it to a function, the function must return the value:
+Functions whose arguments are non-\Copy{} types take ownership of those values. If one wants to use a value \emph{after} passing it to a function, the function must return the value:
 \begin{minted}[linenos]{rust}
-fn get_len(s: Vec<usize>)
+  fn get_len(s: Vec<usize>)
     -> (Vec<usize>, usize) {
     // ...
-}
+  }
 
-let v0 = vec![];
-let (v1, len) = get_len(v0);
-v1.push(1); // fine
+  let v0 = vec![];
+  let (v1, len) = get_len(v0);
+  v1.push(1); // fine
 \end{minted}
 
-As mentioned in \autoref{sec:theory:capability-passing-style}, not only is this not ergonomic, the signatures of this function isn't very expressive. From \mintinline{text}{get_len}'s type signature alone, it is not clear that the returned vector is the same vector as the input. Nothing prevents \mintinline{text}{get_len} from dropping the provided vector and returning a newly allocated one. The following section describes Rust's approach to this problem.
+As mentioned in \autoref{sec:theory:capability-passing-style}, not only is this not ergonomic, the signature of this function is not very expressive. From \mintinline{text}{get_len}'s type signature alone, it is not clear that the returned vector is the same vector as the input. Nothing prevents \mintinline{text}{get_len} from dropping the provided vector and returning a newly allocated one. The following section describes Rust's approach to this problem.
 
 \subsection{Borrowing} \label{sec:rust:borrowing}
 
-The idea of borrowing builds upon the notion of references from languages like C++. As the name suggests, \emph{borrowing} a value to another piece of code (like a function) allows that other code potentially limited access to the value, without the lender losing ownership.
+The idea of borrowing builds upon the notion of references from languages like C++. As the name suggests, \emph{borrowing} a value to another piece of code (like a function) allows that other code limited access to the value, without the lender losing ownership.
+
+There are two kinds of borrows: immutable and mutable borrows. Immutable borrows, indicated by a single \mintinline{text}{&}, allow read-only access to the underlying data, whereas mutable borrows, indicated by \mintinline{text}{&mut}, also allow mutation. The same \mintinline{text}{gen_len} function from before can now be expressed using an immutable borrow:
+\begin{minted}[linenos]{rust}
+  fn gen_len(s: &Vec<usize>) -> usize {
+    // ...
+  }
+
+  let v = vec![];
+  let len = gen_len(&v); // borrows v
+  v.push(1);
+\end{minted}
+
+The usefulness of this approach goes beyond better ergonomics: A function argument that takes an immutable borrow also conveys a programmer's \emph{intent}: This function \emph{does not change the underlying object}, which is enforced by the compiler as well.
+
+Mutable borrows allow more operations, but are also governed by stricter rules than immutable borrows. The main difference is that an object can have any number of immutable borrows, but only ever a single mutable borrow. In particular, an object cannot hold immutable and mutable borrows at the same time. Hence, immutable borrows are often referred to as "shared references", while mutable borrows are often called "exclusive references".
+
+Viewing immutable borrows from the lens of the \mintinline{text}{alloc} example from \autoref{sec:linear:types}, an immutable borrow of \(*\tau\) is a type that sacrifices \mintinline{text}{free} and \mintinline{text}{store} in favor of reintroducing the Contraction and Weakening rules~\cite{from-linearity-to-borrowing}. In fact, Rust has a blanket implementation of the \Copy{} trait for all immutable references~\cite{rust:marker-copy} for this very purpose. On the other hand, a mutable borrow only sacrifices \mintinline{text}{free} in favor of Weakening.
+
+\subsubsection{Exclusivity of Mutable Borrows}
+
+The exclusivity of mutable borrows has two major motivations:
+\begin{enumerate}
+  \item Prevention of Aliasing \label{motivations:aliasing}
+  \item Prevention of Data Races \label{motivations:data-races}
+\end{enumerate}
+
+To illustrate \autoref{motivations:aliasing}, we will use an example by \citet{rust:nomicon}, seen in \autoref{lst:aliasing}. Rust implements references as pointers~\cite{rust:core-ref}, so the code in \autoref{lst:aliasing:before-transformation}, naively viewed, is inefficient in that it has to dereference \mintinline{text}{input} twice. Ideally, the compiler would like to transform this code into the one shown in \autoref{lst:aliasing:after-transformation} by first dereferencing the pointer, \enquote{caching} the underlying value and using that for the comparisons. However, this is \emph{only} possible if the two parameters do not alias. That is, the memory they point to cannot overlap. If they did, the block of the first \mintinline{text}{if} conditional may overwrite the value behind the \mintinline{text}{input} reference. By disallowing the creation of mutable and immutable references to the same object, and hence the same memory, at the same time, Rust also prevents aliasing of mutable and immutable references. So the optimization shown is sound in Rust, which mimics the behavior of C's \mintinline{text}{restrict} keyword.
+
+\begin{figure*}
+  \centering
+  \begin{subfigure}{0.4\textwidth}
+    \centering
+    \begin{minipage}{\textwidth}
+    \begin{minted}[linenos]{rust}
+      fn compute(input: &u32,
+                 output: &mut u32) {
+        if *input > 10 { *output = 1; }
+        if *input > 5 { *output *= 2; }
+      }
+    \end{minted}
+    \end{minipage}
+    \caption{Before Transformation} \label{lst:aliasing:before-transformation}
+  \end{subfigure}
+  \begin{subfigure}{0.4\textwidth}
+    \centering
+    \begin{minted}[linenos]{rust}
+      fn compute(input: &u32,
+                 output: &mut u32) {
+        let tmp = *input;
+        if tmp > 10 { *output = 1; }
+        if tmp > 5 { *output *= 2; }
+      }
+    \end{minted}
+    \caption{After Transformation} \label{lst:aliasing:after-transformation}
+  \end{subfigure}
+
+  \caption{Aliasing Transformation Example} \label{lst:aliasing}
+\end{figure*}
+
+So far we were only concerned about compiler optimizations, but \autoref{motivations:data-races} is a more serious memory safety concern. Note that data races are often mistaken as race conditions, and preventing aliasing of mutable and immutable references certainly does help with preventing race conditions. If we cannot create two mutable views of the object, we can't have two threads both writing to it at the same time either. But a data race can even occur in single threaded contexts.
+
+See for example the following code:
+\begin{minted}[linenos]{rust}
+  let v = vec![1, 2];
+  let m = &mut v;
+  let x = &v[1]; // x points to value `2`
+  m.clear(); // empties the vector behind m
+  *x;
+\end{minted}
+Line 1 creates a vector with 2 elements called \mintinline{text}{v}. \mintinline{text}{m} is a mutable reference to \mintinline{text}{v}, while \mintinline{text}{x} is an immutable reference to \mintinline{text}{v}'s second element. Because \mintinline{text}{m} is a mutable reference, we can use it to clear the vector in line 4, leaving \mintinline{text}{x} as a dangling reference to potentially freed memory.
+
+The relevant issue is that, even though a mutable reference doesn't allow \emph{dropping} a value (mutable references still allow Weakening), mutation can result in memory being freed or moved. If other references were to alias that same memory, we have a data race.
 
 \subsection{Lifetimes}
+
+So far, we could lend values to functions by creating borrows, but the space of possible return types was still limited to owned values. This is not a concern for \Copy{} types, but becomes a concern once we try to return some substructure of our type. For example, a typical operation on vectors is a \mintinline{text}{get} function, which takes an index and returns the value at that given index:
+\begin{minted}[linenos]{rust}
+  fn get(v: &Vec<usize>, index: usize)
+      -> usize {
+    v[index]
+  }
+\end{minted}
+
+But \mintinline{text}{Vec} is a \emph{generic} datatype. We can create vectors of any type \mintinline{text}{T} of which the size is known at compile time, so a function like \mintinline{text}{get} should be generic over the type of the vector:
+\begin{minted}[linenos]{rust}
+  fn get<T>(v: &Vec<T>, index: usize)
+      -> T {
+    v[index]
+  }
+\end{minted}
+And herein lies the issue: \mintinline{text}{T} might not be \Copy{}. The return value \mintinline{rust}{-> T} implies that the function returns an \emph{owned} value of \mintinline{text}{T}. This, however, is not the case: the owner of the value we are trying to get to is the owner of the vector, which lies somewhere in the caller. We cannot take ownership of \mintinline{rust}{v[index]}, because we do not have ownership of \mintinline{text}{v}. Of course, we could limit \mintinline{text}{get} to be only instantiatable for types \mintinline{text}{T} that \emph{are} \Copy{}, but this limits the usefulness of \mintinline{text}{get} significantly.
+
+Instead, what one would like to do is be able to return borrows from functions like so:
+\begin{minted}[linenos]{rust}
+  fn get<T>(v: &Vec<T>, index: usize) -> &T {
+    &v[index]
+  }
+\end{minted}
+And this code will actually compile with the Rust compiler today, but only because of some non-trivial heuristics.
+
+The issue with naively allowing references in function return types is that references don't have an infinite lifetime. A borrow must not live longer than the value's owner, or else there is a risk of a dangling reference which is alive even after the owner was dropped. This is where Rust's notion of \emph{Lifetimes} come into play.
+
+Every value has a Lifetime. In its simplest form, a value's lifetime begins on the line where its constructor is called and ends when its destructor is called (i.e. when it goes out of scope and \mintinline{text}{drop} gets called). References also have lifetimes, which starts where the borrow happens, and ends on the reference's last use.~\cite{rust:nll-intro}
+
+The fundamental rule is that a reference's lifetime must be entirely contained within the corresponding value's lifetime. This is the job of Rust's \emph{borrow checker}, a part of the compiler that makes sure this rule is never broken.
+
+\subsubsection{Lifetime Parameters}
+
+Lifetimes also come in the form of Lifetime parameters, and their names are of the form \enquote{\mintinline{text}{'a}}. These are similar to generic type parameters, only instead of quantifying functions over types, they quantify functions over lifetimes.
+
+The \mintinline{text}{get} function definition from before is actually just a short form of this definition:
+\begin{minted}[linenos]{rust}
+  fn get<'a, T>(v: &'a Vec<T>, index: usize)
+      -> &'a T {
+    &v[index]
+  }
+\end{minted}
+\mintinline{text}{get} is not just generic over \mintinline{text}{T}, but also over the lifetime \mintinline{text}{'a}. When instantiating the function, both the type and the lifetime parameter must be instantiated to concrete types and lifetimes respectively. This new de-sugared function definition clearly states the \enquote{condition} that the returned borrow must fulfill: it's a reference that only lives as long as the borrow \mintinline{text}{&v}. The returned reference from \mintinline{text}{get} cannot be used \emph{after} the argument's lifetime ends.
+
+This connection becomes clearer when looking at a caller of \mintinline{text}{get}:
+\begin{minted}[linenos, escapeinside=||]{rust}
+  let v = vec![1, 2];
+  let x: &usize = get(&v, 1); |\tikzmark{lifetime-begin}|
+  v.push(3);
+  v.push(4);
+  println!("{x}"); |\tikzmark{lifetime-end}|
+\end{minted}
+\begin{tikzpicture}[remember picture]
+  \coordinate (begin) at (pic cs:lifetime-begin);
+  \coordinate (begin-mid) at ($ (begin) + (0.5, 0) $);
+  \coordinate (end) at (pic cs:lifetime-end);
+  \coordinate (end-mid) at (begin-mid |- end);
+
+  \draw[overlay, Stealth-Stealth, thick] (begin) -- (begin-mid) -- node[right] {lifetime \mintinline{text}{'a}} (end-mid) -- (end);
+\end{tikzpicture}
+This code will not compile. The borrow checker notices that \mintinline{text}{x} gets used in line 5, thus the lifetime \mintinline{text}{'a} must include \emph{at least} lines 2 to 5. The \mintinline{text}{get} function gets instantiated with this \mintinline{text}{'a} lifetime, and hence the lifetime of the \mintinline{text}{&v} borrow must also live at least until line 5. Thus, an immutable borrow exists during lines 3 and 4, so the mutation is not sound.
+
+% TODO not sure how and if this is relevant, requires some better source probably (Oxide/RustBelt)
+%
+% One detail we skipped over in \autoref{sec:theory} is that a generic function like \mintinline{rust}{fn alloc<T>(t: T) -> *T} can be seen as a universally quantified proposition \(\forall \texttt{T}\ldotp \texttt{T} \rightarrow *\texttt{T}\). In the same way, functions that are generic over lifetimes have a similar meaning: We are quantifying over all possible lifetimes.
 
 \subsubsection{Non-Lexical Lifetimes}
 
