@@ -53,7 +53,9 @@ After covering the theoretical side of things, we will take Rust as a kind of ca
 
 \section{The Theory of Logic and Types} \label{sec:theory}
 
-Type systems and mathematical logic have unintuitively deep ties. The notion of type inference in modern languages is based mostly on Hindley-Milner type systems, its name originating from the fact that Hindley (a logician) and Milner (a computer scientist) found the same system independently of one another. Hence, to talk about the theory of types, we must first have a peek at the theory of logic.
+Type systems and mathematical logic have unintuitively deep ties. For example, the notion of type inference in modern languages is based mostly on Hindley-Milner type systems, its name originating from the fact that Hindley (a logician) and Milner (a computer scientist) found the same system independently of one another~\cite{hindley, milner}.
+
+While we will not look at type inference in this work, and will instead focus on type systems in general, it gives an early intuition that these topics are interlinked. So to talk about the theory of types, we must first have a peek at the theory of logic.
 
 \subsection{Intuitionistic Logic} \label{sec:intuitionistic:logic}
 
@@ -127,7 +129,7 @@ A rule like these describes a step of logical reasoning. The core idea is that, 
   \item[Bottom to top]
     If I want to show the thing on the bottom, I first need to show the thing at the top
 \end{description}
-The second interpretation becomes particularly relevant when writing proofs. One would starts with the statement one wants to proof, and by applying the rules of natural deduction from bottom to top, it becomes clear what is needed to proof first. The first interpretation on the other hand is how we normally convey proofs to others. One starts with the axioms or known facts, and keeps deriving new facts until the goal is reached.
+The second interpretation becomes particularly relevant when writing proofs. One would start with the statement one wants to proof, and by applying the rules of natural deduction from bottom to top, it becomes clear what is needed to proof first. The first interpretation on the other hand is how we normally convey proofs to others. One starts with the axioms or known facts, and keeps deriving new facts until the goal is reached.
 
 \begin{figure}[H]
   \begin{prooftree}
@@ -239,7 +241,7 @@ Similarly to when we defined natural deduction rules to define the notion of log
     \BinaryInfC{\(\Gamma, \Delta \vdash \text{ let } (x, y) = t; w : \omega\)}
   \end{prooftree}
 
-  \caption{Intuitionistic Types – Judgements} \label{fig:intuitionistic:types:judgements}
+  \caption{Intuitionistic Types – Judgement Rules} \label{fig:intuitionistic:types:judgements}
 \end{figure*}
 
 As before, we can use these judgements to typecheck terms (under typing contexts) like \[f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\] shown in \autoref{fig:intuitionistic:types:proof}.
@@ -274,17 +276,19 @@ As before, we can use these judgements to typecheck terms (under typing contexts
   \caption{Proof of \(f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\)} \label{fig:intuitionistic:types:proof}
 \end{figure*}
 
-\subsubsection{Curry-Howard correspondence}
+\subsubsection{Curry-Howard correspondence} \label{sec:intuitionistic:curry-howard}
 
-Astute readers, or those who have seen the Curry-Howard correspondence before, will have noticed that both the judgements in \autoref{fig:intuitionistic:types:judgements} and the example proof presented in \autoref{fig:intuitionistic:types:proof} are effectively identical to those in \autoref{fig:intuitionistic:logic:nd} and \autoref{fig:intuitionistic:logic:proof} respectively.
+Astute readers, or those who have seen the Curry-Howard correspondence before, will have noticed that the judgement rules in \autoref{fig:intuitionistic:types:judgements} and the proof rules in \autoref{fig:intuitionistic:logic:nd} are effectively identical. Similarly, the example judgement presented in \autoref{fig:intuitionistic:types:proof} and the example proof in \autoref{fig:intuitionistic:logic:proof} are also identical.
 
-This is the discovery made by Curry and Howard~\cite{curry-combinatory-logic, howard-formalae}: propositions are types, and terms are proofs. The conjunction (\(A \land B\)) for propositions are pairs (\(\tau \times \pi\)) in the world of terms and types, implications (\(A \rightarrow B\)) are functions (\(\tau \rightarrow \pi\)) and terms uniquely represent a proof tree (modulo certain commutative properties~\cite{wadler-linear-taste}).
+This is the discovery made by Curry and Howard~\cite{curry-combinatory-logic, howard-formalae}: propositions are types, and terms are proofs. The conjunction (\(A \land B\)) for propositions are pairs (\(\tau \times \pi\)) in the world of terms and types and implications (\(A \rightarrow B\)) are functions (\(\tau \rightarrow \pi\)).
 
-This last point in particular seems magical at first and the correspondence isn't quite as obvious as the others. However, the example we used so far actually shows this connection quite well: The term \((x, f\ x)\) gives significant insight into what a proof of \[A \rightarrow B, A \vdash A \land B\] needs to do. The fact that the variable \(x\) appears twice in the term means there must be a use of the \emph{Contraction} rule, the fact the term is a tuple definition means there must be a use of the \(\land\)\nobreakdash-I rule, and the existence of a function application \(f\ x\) means the proof contains a use of the \(\rightarrow\)\nobreakdash-E rule.
+One rather magical point is that terms uniquely represent a proof tree (modulo certain commutative properties~\cite{wadler-linear-taste}). This correspondence isn't quite as obvious as the others, however, the example we used so far can give an intuition on why this is true: The term \((x, f\ x)\) gives significant insight into what a proof of \[A \rightarrow B, A \vdash A \land B\] needs to do. The fact that the variable \(x\) appears twice in the term means there must be a use of the \emph{Contraction} rule, the fact the term is a tuple definition means there must be a use of the \(\land\)\nobreakdash-I rule, and the existence of the function application \(f\ x\) means the proof contains a use of the \(\rightarrow\)\nobreakdash-E rule. The full connection is a bit more involved, so we will leave it at this intuition.
 
 We mentioned how intuitionistic logic is a system of constructive proofs in \autoref{sec:intuitionistic:logic}. With the Curry-Howard correspondence, this idea becomes even more concrete: In order to prove a proposition, we must be able to construct a term of the corresponding type. Such a term is a program that, when executed, constructs a value of this type.
 
 \subsection{Linear Logic} \label{sec:linear:logic}
+
+Just like with intuitionistic types, before we can jump into linear types, we must first have a look at linear logic. So we will now leave type systems again and take a step back into pure logic, before using the same Curry-Howard isomorphism from \autoref{sec:intuitionistic:curry-howard}, to translate linear logic into linear types.
 
 Linear logic is the idea that not all truths are free. With intuitionistic logic, we could duplicate and forget truths as much as we wanted, and in a mathematical sense, that is what we want. If one proves the \emph{Maximum Modulus Theorem}, that theorem can be further used to proof \emph{Schwarz's Lemma} as well as the \emph{Phragmén-Lindelöf Theorem}~\cite{conway-complex}. We don't somehow lose access to the \emph{Maximum Modulus Theorem} after proving \emph{Schwarz's Lemma}. However, duplication is not free in the real world. If \(A\) means \enquote{I have 60 rupees}, \(B\) means \enquote{I can buy 30 arrows} (that cost 60 rupees total) and \(C\) means \enquote{I can buy a Deku Shield} (which costs 40 rupees), then \autoref{fig:linear:logic:rupees} shows a proof of how 60 rupees can buy both in intuitionistic logic by duplicating \(A\). And yet, 60 rupees aren't actually enough to buy both 30 arrows \emph{and} a Deku Shield.
 
@@ -303,16 +307,16 @@ Linear logic is the idea that not all truths are free. With intuitionistic logic
 
 The issue is with the Contraction and Weakening rules, both of which linear logic tries to limit. One could just carelessly remove Contraction and Weakening and call it a day. However, the goal is not just to remove these rules, but also to not lose expressivity. Unfortunately, this is where the details get a bit messy, thus we will only give an overview.
 
-The core idea is to split propositions into two groups: linear and intuitionistic. Intuitionistic propositions, now denoted \([A]\), work as we know and allow for Contraction and Weakening, while linear propositions, denoted \(\langle A\rangle\), allow everything but Contraction and Weakening. The notation for the logical connectives also changes, and their meaning may now differ.
+The core idea is to split propositions into two groups: linear and intuitionistic. Intuitionistic propositions, denoted just as before, work as we know and allow for Contraction and Weakening, while linear propositions, denoted \(\langle A\rangle\), allow everything but Contraction and Weakening. The notation for the logical connectives also changes, and their meaning may now differ.
 
-\(A \rightarrow B\) becomes \(A \multimap B\) and whereas before we could freely convert \(A\) into \(B\), if \(A\) is linear the operation completely consumes our \(A\). \(A \land B\) becomes \(A \otimes B\) and while there is not a big difference in meaning, there are other formulations of conjunctives that are equivalent in intuitionistic logic, but have a profoundly different meaning in linear logic.
-% TODO maybe reference philip wadler again, maybe write a footnote with more detail, or do an appendix with a full explanation?
+\(A \rightarrow B\) becomes \(A \multimap B\) and whereas before we could freely convert \(A\) into \(B\), if \(A\) is linear the operation completely consumes our \(A\). \(A \land B\) becomes \(A \otimes B\) and while there is not a big difference in meaning, there are other formulations of conjunctives that are equivalent in intuitionistic logic, but have a profoundly different meaning in linear logic~\cite{wadler-linear-taste}.
+% TODO maybe write a footnote with more detail, or do an appendix with a full explanation?
 
 Note that for our example proof from \autoref{fig:intuitionistic:logic:proof}, if we make the assumption \(A\) linear, we get: \[A \multimap B, \langle A\rangle \vdash A \otimes B\] But this isn't provable anymore, as we would need to duplicate \(\langle A\rangle\).
 
 \subsection{Linear Types} \label{sec:linear:types}
 
-Applying the Curry-Howard correspondence to linear logic, we get a particularly useful type-theoretic concept: Non-duplicatable and non-forgettable values. Taking a look at our example proof once again: \[f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\] The thing of interest is the duplication of \(x\). In real world programming, \(x\) could be anything, including a highly limited resource. If \(x\) is a simple integer, it may be no problem to copy it, but if \(x\) is a large array, copying may be an unacceptable performance hit. Even worse, if \(x\) represents some resource like a file, duplication may be catastrophic.
+Applying the Curry-Howard correspondence to linear logic, we get a particularly useful type-theoretic concept: Non-duplicatable and non-forgettable values. Taking a look at the judgement from \autoref{fig:intuitionistic:types:proof} once again: \[f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\] The thing of interest is the duplication of \(x\). In real world programming, \(x\) could be anything, including a highly limited resource. If \(x\) is a simple integer, it may be no problem to copy it, but if \(x\) is a large array, copying may be an unacceptable performance hit. Even worse, if \(x\) represents some resource like a file, duplication may be catastrophic.
 
 The particularly interesting application is in contexts of manual memory management. If we define the following functions inspired by \citet{from-linearity-to-borrowing} for allocating and freeing memory, we may be susceptible to various memory related bugs:
 
