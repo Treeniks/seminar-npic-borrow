@@ -35,22 +35,28 @@
 % LTeX: enabled=true
 
 \begin{abstract}
-  \lipsum[1]
+  Rust’s type system provides strong memory safety guarantees while enabling low-level systems programming through the notions of ownership, borrowing and lifetimes, which employ strict rules on which programs are valid. These rules are checked by Rust's borrow checker, and draw on the theoretical foundations of linear types. This paper presents a high-level overview connecting the theoretical foundations of linear types to Rust’s type system, as well as examines practical considerations and current limitations of the borrow checker. We begin by introducing intuitionistic logic and illustrate its connection to type systems through the Curry-Howard correspondence. We further repeat this process of linear logic and linear types. We then examine Rust as a real-world application of these concepts, highlighting ownership, capability-passing style, borrowing, and lifetimes, and explore modern developments in Rust’s compiler, including non-lexical lifetimes and the Polonius borrow checker. By bridging theory and practice, this work highlights the principles underlying Rust’s approach to safe and efficient systems programming.
 \end{abstract}
 
 \maketitle
 
 \section{Introduction} \label{sec:introduction}
 
-The Rust programming language continues to be the most admired programming language in the 2025 stack overflow developer survey, \(\sim\)65000 lines of Rust code have already made it into the Linux source code, and Ubuntu is considering replacing the GNU coreutils with uutils, a Rust rewrite.
-% https://youtu.be/HX0GH-YJbGw?si=lStGiyWTUgaOm_0D&t=600
-% https://discourse.ubuntu.com/t/carefully-but-purposefully-oxidising-ubuntu/56995
+\(\sim\)65000 lines of Rust code have already made it into the Linux kernel source code~\cite{intro:rust-in-linux} all the while Ubuntu is considering replacing the GNU coreutils with uutils, a Rust rewrite~\cite{intro:uutils, intro:ubuntu}. It is clear that the Rust programming language continues to gain in relevance. These accomplishments are, in part, due to Rust's unique blend of low-level systems programming and an expressive type system.
 
-These accomplishments are, in part, due to Rust's unique blend of low-level systems programming and an expressive type system, which have been fairly exclusive features in the past. At the heart of Rust's type system lies the theory of substructural types.
+At the heart of Rust's type system lie the concepts of ownership, borrowing and lifetimes, whose rules are checked by a component of the compiler called the borrow checker. These concepts have since been adopted in various forms in other languages, like OCaml~\cite{intro:ocaml-ownership} and Swift~\cite{intro:swift-ownership}.
 
-While Rust itself is technically an \emph{affine} type system, this paper will look at it through the lens of \emph{linear} types. To that end, we will first introduce the theoretical background of intuitionistic logic and its correspondence to type systems through the Curry-Howard isomorphism. We will further examine TODO XX(LINEAR LOGIC DUDE NAME HERE)XX's linear logic and apply a similar isomorphism to introduce the notion of linear types.
+Theoretical formalizations of Rust have been developed by \citet{rust:oxide}, \citet{rust:rustbelt}, while \citet{from-linearity-to-borrowing} analyze these concepts in a more general light. But the core mathematical background behind ownership is that of linear logic, developed by \citet{girard-linear-logic}.
 
-After covering the theoretical side of things, we will take Rust as a kind of case study of a real world application of linear types through Rust's ownership model. (TODO write here about capability passing style maybe? although maybe we move that subsection earlier to \ref{sec:linear:types}) (TODO write about borrowing, lifetimes and polonius).
+This paper tries to give a more high level view of the entire line from the theoretical type-theoretic background, over Rust's basic implementation of these theoretical concepts, all the way to cutting-edge modern developments on the Rust compiler.
+
+To that end, we will first introduce the theoretical background of intuitionistic logic and its correspondence to type systems through the Curry-Howard isomorphism (\cref{sec:intuitionistic:logic} and \cref{sec:intuitionistic:types}). We will further examine linear logic and apply a similar isomorphism to introduce the notion of linear types, a type system where each value must be used \emph{exactly} once (\cref{sec:linear:logic} and \cref{sec:linear:types}). Thus, linear types impose strong limitations on what programs are valid in exchange for safer and clearer resource management.
+
+We will then take Rust as a case study of a real world application of linear types through Rust's ownership model (\cref{sec:rust:ownership}). We will see examples of capability-passing-style, a style of programming in linearly types contexts where function parameters are passed through the function into the return value, and use these examples as motivation for the introduction of borrowing, which allow escaping the limitations of linearity in exchange for limiting certain mutations (\cref{sec:rust:capability-passing-style} and \cref{sec:rust:borrowing}).
+
+In order to return borrowed values from functions, the notion of lifetimes is required in order to retain the safety gained from the ownership model (\cref{sec:rust:lifetimes}). Rust's lifetimes are a complex topic with a lot of history of improvements. Each iteration of how lifetimes are processed in Rust attempts to widen the set of programs accepted by the compiler, and ultimately reduce the friction and complications programmers face when writing Rust code, while keeping Rust's memory safety guarantees.
+
+The two most prominent developments in the space of Rust lifetimes have been \emph{non-lexical-lifetimes}, discussed in \cref{sec:rust:nll}, and the more recent Polonius, discussed in \cref{sec:rust:polonius}.
 
 \section{The Theory of Logic and Types} \label{sec:theory}
 
@@ -375,7 +381,7 @@ We will discuss how to fix these issues in \cref{sec:rust:borrowing}.
 
 It is worth noting again that this is only a simplified view of the topic. \citet{wadler-linear-taste} e.g. goes into further detail.
 
-\section{The Real World of Rust} \label{sec:real-world}
+\section{The Real World of Rust} \label{sec:rust}
 
 In this section, we will explore how Rust uses and extends the ideas of linear types to achieve its claimed memory safety, while keeping the cost in programming ergonomics low. We will make use of several features implemented in Rust's standard library~\cite{rust:std} for the examples.
 
@@ -383,7 +389,7 @@ Many programming languages implement the ideas behind linear types in some ways.
 
 Although that isn't quite accurate. Rust does in fact \emph{not} prevent Weakening. In particular, Rust can create memory leaks, and it is explicitly supported with \mintinline{rust}{std::mem::forget} (although this did cause issues in the past~\cite{rust:poop}). Instead, it is more accurate to categorize Rust's type system as \emph{affine}. Affine logic is linear logic plus Weakening. Alternatively, it is a logic without Contraction.
 
-\subsection{Rust's Ownership Model}
+\subsection{Rust's Ownership Model} \label{sec:rust:ownership}
 
 We mentioned in \cref{sec:linear:logic} that linear logic doesn't just outright remove intuitionistic propositions, but instead just groups propositions into intuitionistic or linear. This categorization of propositions shows itself in Rust's \Copy{} trait.\footnote{Traits can be viewed as Rust's type classes.}
 
@@ -513,7 +519,7 @@ Line 1 creates a vector with 2 elements called \mintinline{text}{v}. \mintinline
 
 The relevant issue is that, even though a mutable reference doesn't allow \emph{dropping} a value (mutable references still allow Weakening), mutation can result in memory being freed or moved. If other references were to alias that same memory, we have a data race.
 
-\subsection{Lifetimes}
+\subsection{Lifetimes} \label{sec:rust:lifetimes}
 
 So far, we could lend values to functions by creating borrows, but the space of possible return types was still limited to owned values. This is not a concern for \Copy{} types, but becomes a concern once we try to return some substructure of our type. For example, a typical operation on vectors is a \mintinline{text}{get} function, which takes an index and returns the value at that given index:
 \begin{minted}[linenos]{rust}
@@ -683,9 +689,20 @@ The \mintinline{text}{get_on_insert} example from \cref{lst:get_or_insert:defini
 
 With Polonius, we still have a loan at line 4, which we will call \(\texttt{L}4\). \(\texttt{L}4\) is part of \mintinline{text}{v}'s type, however, v is \emph{not live} at line 7. Hence, the loan \(\texttt{L}4\) is \emph{also} not live at line 7. Remember, with Polonius, the borrow checker needs to check if some instruction violates the rules of a loan that is live at that instruction. Since \mintinline{text}{v} is not live at line 7, neither is \(\texttt{L}4\), and so there is no loan that is violated. Thus, the program gets accepted.
 
-\subsection{Lifetime Parameters for Structures}
+It is important to note again that, at the time of writing, Polonius is a current development and not integrated in today's stable Rust compiler. The authors of Polonius themselves state, that it is not ready for widespread use~\cite{rust:polonius-book}.
+
+% TODO probably got no space for this left
+% \subsection{Lifetime Parameters for Structures}
 
 \section{Summary}
+
+Rust's type system has long diverged from its theoretical roots due to practical considerations, however its connection to linear types is still quite apparent. While we display a limited view of Rust's ownership and borrowing rules, many features and parts of Rust remain untouched by this work. For example, Rust \emph{does} support mutation through immutable borrows through the notion of interior mutability. Similarly, out of necessity, Rust's \mintinline{text}{unsafe} keyword allows certain operations to circumvent the borrow checker for when its rules are too strict.
+
+Ultimately however, the combination of safety guarantees and developer ergonomics offered by Rust are impressive, and thanks to simple examples that already cause complicated lifetime constraints, it is clear that getting to this point required a lot of work and research.
+
+% TODO:
+% - make Rust's safety guarantees clear
+% - HashMap entry API
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{paper} % read paper.bib file
