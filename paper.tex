@@ -8,11 +8,10 @@
 
 \usepackage{subcaption}
 \usepackage{hyphenat}
-\usepackage[babel]{csquotes}
 \usepackage[capitalise, nameinlink, noabbrev]{cleveref}
-
 \usepackage{minted}
 \setminted{autogobble}
+\usepackage[babel]{csquotes}
 
 \usepackage{tikz}
 \usetikzlibrary{tikzmark, calc, arrows.meta}
@@ -39,6 +38,8 @@
 \end{abstract}
 
 \maketitle
+
+\sloppy
 
 \section{Introduction} \label{sec:introduction}
 
@@ -72,15 +73,12 @@ Logic provides formal languages and inference rules for precise reasoning. When 
 
 With this limitation, intuitionistic logic is a logic of constructive proofs. Classical logic allows proofs of a proposition that don't actually construct a specific witness, proofs by contradiciton being the typical culprit. In intuitionistic logic, one must explicitly provide the corresponding constructive evidence.
 
-Since we are mostly concerned with general concepts, we will only view a reduced version of the logic used by \citet{wadler-linear-taste}. Its grammar can be seen in \cref{fig:intuitionistic:logic:grammar}. For the sake of simplicity, we exclude \emph{disjunctive} connectives (\(\lor\)).
-
-\begin{figure}[H]
+Since we are mostly concerned with general concepts, we will only view a reduced version of the logic used by \citet{wadler-linear-taste}. Specifically, we exclude \emph{disjunctive} connectives (\(\lor\)):
+\begin{center}
   \begin{bnf}
     \(A, B, C\) : Proposition ::= \(X\) : Variable | \(A \rightarrow B\) : Implication | \(A \land B\) : Conjunction
   \end{bnf}
-
-  \caption{Intuitionistic Logic Grammar} \label{fig:intuitionistic:logic:grammar}
-\end{figure}
+\end{center}
 
 \begin{figure*}
   \begin{prooftree}
@@ -123,7 +121,6 @@ Since we are mostly concerned with general concepts, we will only view a reduced
     \RightLabel{\(\land\)-E}
     \BinaryInfC{\(\Gamma, \Delta \vdash C\)}
   \end{prooftree}
-
   \caption{Intuitionistic Logic -- Natural Deduction} \label{fig:intuitionistic:logic:nd}
 \end{figure*}
 
@@ -166,7 +163,6 @@ The second interpretation becomes particularly relevant when writing proofs. One
     \RightLabel{Contraction}
     \UnaryInfC{\(A \rightarrow B, A \vdash A \land B\)}
   \end{prooftree}
-
   \caption{Proof of \(A \rightarrow B, A \vdash A \land B\)} \label{fig:intuitionistic:logic:proof}
 \end{figure}
 
@@ -179,28 +175,25 @@ Of particular interest for us are the Contraction and Weakening rules. Contracti
 We will now move away from logic and into the theory of computation and types. To talk about types we first need a programming language, for which we will use a small, limited and typed lambda calculus, the grammar of which can be seen in \cref{fig:intuitionistic:types:grammar}. We write \(t : \alpha\) to denote that term \(t\) has type \(\alpha\).
 
 \begin{figure*}
-  \begin{subfigure}{\textwidth}
+  \begin{subfigure}{0.58\textwidth}
     \centering
     \begin{bnf}
-      \(s,t,u,v,w\) : Term ::= \(x\) : Variable
+      \(s,t,u,v,w\) ::= \(x\) : Variable
       | \(\lambda x\ldotp s\) : Function Definition | \(s\ t\) : Function Application
       | \((u, v)\) : Tuple Definition | let \((x, y) = t\); \(w\) : Tuple Destructuring
     \end{bnf}
-
     \caption{Intuitionistic Terms}
   \end{subfigure}
-
-  \begin{subfigure}{\textwidth}
+  \vrule
+  \begin{subfigure}{0.38\textwidth}
     \centering
     \begin{bnf}
-      \(\tau, \pi, \omega\) : Type ::= \(T\) : Base Type
+      \(\tau, \pi, \omega\) ::= \(T\) : Base Type
       | \(\tau \rightarrow \pi\) : Functions
       | \(\pi \times \omega\) : Tuple
     \end{bnf}
-
     \caption{Intuitionistic Types}
   \end{subfigure}
-
   \caption{Grammar of Untyped Lambda Calculus} \label{fig:intuitionistic:types:grammar}
 \end{figure*}
 
@@ -249,7 +242,6 @@ Similarly to when we defined natural deduction rules to define the notion of log
     \RightLabel{\(\times\)-E}
     \BinaryInfC{\(\Gamma, \Delta \vdash \text{ let } (x, y) = t; w : \omega\)}
   \end{prooftree}
-
   \caption{Intuitionistic Types – Judgement Rules} \label{fig:intuitionistic:types:judgements}
 \end{figure*}
 
@@ -281,7 +273,6 @@ As before, we can use these judgements to typecheck terms (under typing contexts
     \RightLabel{Contraction}
     \UnaryInfC{\(f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\)}
   \end{prooftree}
-
   \caption{Proof of \(f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\)} \label{fig:intuitionistic:types:proof}
 \end{figure*}
 
@@ -299,9 +290,8 @@ We mentioned how intuitionistic logic is a system of constructive proofs in \cre
 
 Just like with intuitionistic types, before we can jump into linear types, we must first have a look at linear logic. So we will now leave type systems again and take a step back into pure logic, before using the same Curry-Howard isomorphism from \cref{sec:intuitionistic:curry-howard}, to translate linear logic into linear types.
 
-Linear logic is the idea that not all truths are free. With intuitionistic logic, we could duplicate and forget truths as much as we wanted, and in a mathematical sense, that is what we want. If one proves the \emph{Maximum Modulus Theorem}, that theorem can be further used to proof \emph{Schwarz's Lemma} as well as the \emph{Phragmén-Lindelöf Theorem}~\cite{conway-complex}. We don't somehow lose access to the \emph{Maximum Modulus Theorem} after proving \emph{Schwarz's Lemma}. However, duplication is not free in the real world. If \(A\) means \enquote{I have 60 rupees}, \(B\) means \enquote{I can buy 30 arrows} (that cost 60 rupees total) and \(C\) means \enquote{I can buy a Deku Shield} (which costs 40 rupees), then \cref{fig:linear:logic:rupees} shows a proof of how 60 rupees can buy both in intuitionistic logic by duplicating \(A\). And yet, 60 rupees aren't actually enough to buy both 30 arrows \emph{and} a Deku Shield.
-
-\begin{figure}[H]
+Linear logic is the idea that not all truths are free. With intuitionistic logic, we could duplicate and forget truths as much as we wanted, and in a mathematical sense, that is what we want. If one proves the \emph{Maximum Modulus Theorem}, that theorem can be further used to proof \emph{Schwarz's Lemma} as well as the \emph{Phragmén-Lindelöf Theorem}~\cite{conway-complex}. We don't somehow lose access to the \emph{Maximum Modulus Theorem} after proving \emph{Schwarz's Lemma}. However, duplication is not free in the real world. If \(A\) means \enquote{I have 60 rupees}, \(B\) means \enquote{I can buy 30 arrows} (that cost 60 rupees total) and \(C\) means \enquote{I can buy a Deku Shield} (which costs 40 rupees), then the following shows a proof of how 60 rupees can buy both in intuitionistic logic by duplicating \(A\):
+\begin{center}
   \begin{prooftree}
     \AxiomC{\(A \vdash B\)}
     \AxiomC{\(A \vdash C\)}
@@ -310,9 +300,8 @@ Linear logic is the idea that not all truths are free. With intuitionistic logic
     \RightLabel{Contraction}
     \UnaryInfC{\(A \vdash B \land C\)}
   \end{prooftree}
-
-  \caption{Proof of \(A \rightarrow B, A \vdash A \land B\)} \label{fig:linear:logic:rupees}
-\end{figure}
+\end{center}
+And yet, 60 rupees aren't actually enough to buy both 30 arrows \emph{and} a Deku Shield.
 
 The issue is with the Contraction and Weakening rules, both of which linear logic tries to limit. One could just carelessly remove Contraction and Weakening and call it a day. However, the goal is not just to remove these rules, but also to not lose expressivity. Unfortunately, this is where the details get a bit messy, thus we will only give an overview.
 
@@ -401,7 +390,7 @@ Types that don't implement \Copy{} act like our linear types. To improve ergonom
 \begin{minted}[linenos]{rust}
   let mut v = vec![];
   let mut w = v;
-  v.push(1); // ERROR
+  v.push(1); // error
   w.push(2);
 \end{minted}
 Line 1 defines the variable \mintinline{text}{v} that is the unique owner of the underlying vector. Line 2 \emph{moves} the value to \mintinline{text}{w}. Rust knows that the ownership of the underlying vector has moved from \mintinline{text}{v} to \mintinline{text}{w}, hence \mintinline{text}{v} cannot be used after line 2. Line 3 causes an error.
@@ -422,27 +411,45 @@ If we replace the vector with an integer in the above code, the Rust compiler wi
 
 \subsection{Capability Passing Style in Rust} \label{sec:rust:capability-passing-style}
 
-Naively applying the rules of ownership results in a similar problem described in \cref{sec:theory:capability-passing-style}:
-\begin{minted}[linenos]{rust}
-  fn get_len(s: Vec<usize>) -> usize {
-    // ...
-  }
+\begin{figure*}
+  \begin{subfigure}{0.46\textwidth}
+    \begin{minted}[linenos]{rust}
+      fn get_len(s: Vec<usize>) -> usize {
+        // ...
+      }
+      let v = vec![];
+      let len = get_len(v);
+      v.push(1); // error, v was moved
+    \end{minted}
+    \caption{Naive Implementation} \label{lst:get_len:naive}
+  \end{subfigure}
+  \begin{subfigure}{0.52\textwidth}
+    \begin{minted}[linenos]{rust}
+      fn get_len(s: Vec<usize>) -> (Vec<usize>, usize) {
+        // ...
+      }
+      let v0 = vec![];
+      let (v1, len) = get_len(v0);
+      v1.push(1); // fine
+    \end{minted}
+    \caption{Capability-Passing-Style} \label{lst:get_len:capability-passing-style}
+  \end{subfigure}
 
-  let v = vec![];
-  let len = get_len(v);
-  v.push(1); // error, v was moved
-\end{minted}
-Functions whose arguments are non-\Copy{} types take ownership of those values. If one wants to use a value \emph{after} passing it to a function, the function must return the value:
-\begin{minted}[linenos]{rust}
-  fn get_len(s: Vec<usize>)
-    -> (Vec<usize>, usize) {
-    // ...
-  }
+  \vspace{1em}
 
-  let v0 = vec![];
-  let (v1, len) = get_len(v0);
-  v1.push(1); // fine
-\end{minted}
+  \begin{subfigure}{0.5\textwidth}
+    \begin{minted}[linenos]{rust}
+      fn gen_len(s: &Vec<usize>) -> usize { /* ... */ }
+      let mut v = vec![];
+      let len = gen_len(&v); // borrows v
+      v.push(1);
+    \end{minted}
+    \caption{Using Borrows} \label{lst:get_len:borrows}
+  \end{subfigure}
+  \caption{\mintinline{text}{get_len} Example} \label{lst:get_len}
+\end{figure*}
+
+\Cref{lst:get_len:naive} show how naively applying the rules of ownership results in a similar problem described in \cref{sec:theory:capability-passing-style}. Functions whose arguments are non-\Copy{} types take ownership of those values. If one wants to use a value \emph{after} passing it to a function, the function must return the value, as seen in \cref{lst:get_len:capability-passing-style}.
 
 As mentioned in \cref{sec:theory:capability-passing-style}, not only is this not ergonomic, the signature of this function is not very expressive. From \mintinline{text}{get_len}'s type signature alone, it is not clear that the returned vector is the same vector as the input. Nothing prevents \mintinline{text}{get_len} from dropping the provided vector and returning a newly allocated one. The following section describes Rust's approach to this problem.
 
@@ -450,16 +457,7 @@ As mentioned in \cref{sec:theory:capability-passing-style}, not only is this not
 
 The idea of borrowing builds upon the notion of references from languages like C++. As the name suggests, \emph{borrowing} a value to another piece of code (like a function) allows that other code limited access to the value, without the lender losing ownership.
 
-There are two kinds of borrows: immutable and mutable borrows. Immutable borrows, indicated by a single \mintinline{text}{&}, allow read-only access to the underlying data, whereas mutable borrows, indicated by \mintinline{text}{&mut}, also allow mutation. The same \mintinline{text}{gen_len} function from before can now be expressed using an immutable borrow:
-\begin{minted}[linenos]{rust}
-  fn gen_len(s: &Vec<usize>) -> usize {
-    // ...
-  }
-
-  let mut v = vec![];
-  let len = gen_len(&v); // borrows v
-  v.push(1);
-\end{minted}
+There are two kinds of borrows: immutable and mutable borrows. Immutable borrows, indicated by a single \mintinline{text}{&}, allow read-only access to the underlying data, whereas mutable borrows, indicated by \mintinline{text}{&mut}, also allow mutation. The same \mintinline{text}{gen_len} function from before can now be expressed using an immutable borrow, as seen in \cref{lst:get_len:borrows}.
 
 The usefulness of this approach goes beyond better ergonomics: A function argument that takes an immutable borrow also conveys a programmer's \emph{intent}: This function \emph{does not change the underlying object}, which is enforced by the compiler as well.
 
@@ -480,7 +478,7 @@ To illustrate \cref{motivations:aliasing}, we will use an example by \citet{rust
 
 \begin{figure*}
   \centering
-  \begin{subfigure}[t]{0.4\textwidth}
+  \begin{subfigure}{0.42\textwidth}
     \centering
     \begin{minted}[linenos]{rust}
       fn compute(input: &u32,
@@ -491,7 +489,7 @@ To illustrate \cref{motivations:aliasing}, we will use an example by \citet{rust
     \end{minted}
     \caption{Before Transformation} \label{lst:aliasing:before-transformation}
   \end{subfigure}
-  \begin{subfigure}[t]{0.4\textwidth}
+  \begin{subfigure}{0.42\textwidth}
     \centering
     \begin{minted}[linenos]{rust}
       fn compute(input: &u32,
@@ -503,7 +501,6 @@ To illustrate \cref{motivations:aliasing}, we will use an example by \citet{rust
     \end{minted}
     \caption{After Transformation} \label{lst:aliasing:after-transformation}
   \end{subfigure}
-
   \caption{Aliasing Transformation Example} \label{lst:aliasing}
 \end{figure*}
 
@@ -656,7 +653,6 @@ Even with NLL, there are still issues with today's borrow checker in practice. T
     \end{minted}
     \caption{Caller} \label{lst:get_or_insert:caller}
   \end{subfigure}
-
   \caption{\mintinline{text}{get_or_insert} Lifetime Example} \label{lst:get_or_insert}
 \end{figure*}
 
