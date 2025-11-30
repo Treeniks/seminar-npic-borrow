@@ -42,7 +42,9 @@
 
 \section{Introduction} \label{sec:introduction}
 
-\(\sim\)65000 lines of Rust code have already made it into the Linux kernel source code~\cite{intro:rust-in-linux} all the while Ubuntu is considering replacing the GNU coreutils with uutils, a Rust rewrite~\cite{intro:uutils, intro:ubuntu}. It is clear that the Rust programming language continues to gain in relevance. These accomplishments are, in part, due to Rust's unique blend of low-level systems programming and an expressive type system.
+\(\sim\)65000 lines of Rust code have already made it into the Linux kernel source code~\cite{intro:rust-in-linux} all the while Ubuntu is considering replacing the GNU coreutils with uutils, a Rust rewrite~\cite{intro:uutils, intro:ubuntu}. It is clear that the Rust programming language continues to gain in relevance. These accomplishments are, in part, due to Rust's unique blend of low-level systems programming, safety guarantess and an expressive type system.
+
+The latter two are somewhat connected, as Rust's type system is a major part of how Rust can manage its memory safety guarantees. Unless Rust's \mintinline{text}{unsafe} keyword is used, the Rust compiler guarantees to deny programs that would cause typical memory safety vulnerabilities, including data races and use-after-free.
 
 At the heart of Rust's type system lie the concepts of ownership, borrowing and lifetimes, whose rules are checked by a component of the compiler called the borrow checker. These concepts have since been adopted in various forms in other languages, like OCaml~\cite{intro:ocaml-ownership} and Swift~\cite{intro:swift-ownership}.
 
@@ -625,7 +627,7 @@ The mutation in line 4 thus doesn't overlap with the lifetime of an immutable bo
 
 \subsection{Polonius} \label{sec:rust:polonius}
 
-Even with NLL, there are still issues with today's borrow checker in practice. The typical example by \citet{rust:polonius-talk, rust:nll-intro, rust:nll2} is the attempt at a function that takes a mutable reference to a \mintinline{text}{HashMap}, returns the value behind some key, and inserts a default value for that key if the key isn't already present in the map (as in \cref{lst:get_or_insert:definition}).
+Even with NLL, there are still issues with today's borrow checker in practice. The typical example by \citet{rust:polonius-talk, rust:nll-intro, rust:nll2} is the attempt at a function that takes a mutable reference to a \mintinline{text}{HashMap}, returns the value behind some key, and inserts a default value for that key if the key isn't already present in the map (as in \cref{lst:get_or_insert:definition})\footnote{Note that this specific example was a primary motivation for the development of Rust's \mintinline{text}{HashMap::entry} API~\cite{rust:std} which should be used for this specific usecase instead.}.
 
 \begin{figure*}
   \begin{subfigure}[t]{0.48\textwidth}
@@ -696,13 +698,13 @@ It is important to note again that, at the time of writing, Polonius is a curren
 
 \section{Summary}
 
-Rust's type system has long diverged from its theoretical roots due to practical considerations, however its connection to linear types is still quite apparent. While we display a limited view of Rust's ownership and borrowing rules, many features and parts of Rust remain untouched by this work. For example, Rust \emph{does} support mutation through immutable borrows through the notion of interior mutability. Similarly, out of necessity, Rust's \mintinline{text}{unsafe} keyword allows certain operations to circumvent the borrow checker for when its rules are too strict.
+Rust's type system has long evolved beyond its theoretical roots due to practical considerations, however its connection to linear types remains evident. In this paper, we displayed a limited view of Rust's ownership and borrowing rules, but many features and parts of Rust remain outside its scope. For example, contrary to its description from \cref{sec:rust:borrowing}, Rust \emph{does} support mutation through immutable borrows through the notion of interior mutability, which implement the borrow checking rules at runtime. Similarly, Rust's \mintinline{text}{unsafe} keyword allows certain operations, which permit circumventing the borrow checker for when its rules are too restrictive.
 
-Ultimately however, the combination of safety guarantees and developer ergonomics offered by Rust are impressive, and thanks to simple examples that already cause complicated lifetime constraints, it is clear that getting to this point required a lot of work and research.
+Several challenges with the borrow checker still remain. Some of them will improve by the eventual introduction of Polonius into the stable compiler, others remain unsolved. For instance, self-referential structs remain a pain point for many Rust developers and still require the use of awkward or unsafe APIs.
 
-% TODO:
-% - make Rust's safety guarantees clear
-% - HashMap entry API
+Ultimately however, the balance of safety guarantees and developer ergonomics offered by Rust is impressive. Even simple examples can cause complicated and intricate lifetime constraints, highlighting the extensive research and engineering effort required.
+
+% TODO maybe mention Polonius is written in Datalog?
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{paper} % read paper.bib file
