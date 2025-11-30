@@ -372,7 +372,7 @@ The \mintinline{text}{free} function still fully consumes the resource and \(\la
 \end{enumerate}
 We will discuss how to fix these issues in \autoref{sec:rust:borrowing}.
 
-It is worth noting again that correct theoretical handling of linear logic and types is a bit more involved and this work only shows a simplified view of the topic. \citet{wadler-linear-taste} e.g. goes into further detail.
+It is worth noting again that this is only a simplified view of the topic. \citet{wadler-linear-taste} e.g. goes into further detail.
 
 \section{The Real World of Rust} \label{sec:real-world}
 
@@ -499,7 +499,7 @@ To illustrate \autoref{motivations:aliasing}, we will use an example by \citet{r
 
 So far we were only concerned about compiler optimizations, but \autoref{motivations:data-races} is a more serious memory safety concern. Note that data races are often mistaken as race conditions, and preventing aliasing of mutable and immutable references certainly does help with preventing race conditions. If we cannot create two mutable views of the object, we can't have two threads both writing to it at the same time either. But a data race can even occur in single threaded contexts.
 
-See for example the following code:
+See for example the following code, which Rust correctly refuses to compile:
 \begin{minted}[linenos]{rust}
   let mut v = vec![1, 2];
   let m = &mut v;
@@ -650,7 +650,7 @@ Even with NLL, there are still issues with today's borrow checker in practice. T
   \caption{\mintinline{text}{get_or_insert} Lifetime Example} \label{lst:get_or_insert}
 \end{figure*}
 
-This function fails to compile on today's Rust, even with NLL. The issue lies in line 4: \mintinline{rust}{map.get(&69)} is short for \mintinline{rust}{HashMap::get(&*map, &69)}. In particular, line 4 creates an immutable borrow of \mintinline{text}{map}. This borrow has a lifetime, and with the view of NLL, that lifetime corresponds to a set of lines where the borrow may still be used. However, the value returned by the call to \mintinline{text}{get} might actually be returned to the caller, so the lifetime of this borrow is not confined to this function. The lifetime applied to the borrow of map is thus \mintinline{text}{'a}.
+This function fails to compile on today's Rust, even with NLL. The issue lies in line 5: \mintinline{rust}{map.get(&69)} is short for \mintinline{rust}{HashMap::get(&*map, &69)}. In particular, line 4 creates an immutable borrow of \mintinline{text}{map}. This borrow has a lifetime, and with the view of NLL, that lifetime corresponds to a set of lines where the borrow may still be used. However, the value returned by the call to \mintinline{text}{get} might actually be returned to the caller, so the lifetime of this borrow is not confined to this function. The lifetime applied to the borrow of map is thus \mintinline{text}{'a}.
 
 \autoref{lst:get_or_insert:caller} shows a potential caller to the \mintinline{text}{get_or_insert} function. The lifetime that \mintinline{text}{get_or_insert} is instantiated with will be \(\{14, 15\}\), representing lines 14 and 15, and line 14 actually includes the \emph{entire} call of \mintinline{text}{get_or_insert}. In \autoref{sec:rust:nll} we mentioned that a non-lexical lifetime can be seen as a set of lines. However, it can also be a named lifetime like \mintinline{text}{'a}. In this example, the named lifetime \mintinline{text}{'a} from \mintinline{text}{get_or_insert} is a lifetime that exists somewhere in the caller, because the function \emph{returns a value of lifetime \mintinline{text}{'a}}. The lifetime gets blown up to the entirety of the \mintinline{text}{get_or_insert} function, and will include the \mintinline{text}{None} branch. When we now try to create another mutable borrow in that \mintinline{text}{None} branch, the borrow checker sees overlapping mutable and immutable borrows and errors out.
 
@@ -662,14 +662,14 @@ Polonius~\cite{rust:polonius-repo} is a new approach to lifetimes that tries to 
     x += 1;
   }
 \end{minted}
-The lifetime of the borrow created at line 3 is now the set of loans that the borrow may have come from. There is only one loan that fits and that is the loan done at line 3. The lifetime of \mintinline{text}{y} is thus \(\{\texttt{L}3\}\) and thus \mintinline{text}{y}'s type is \mintinline{rust}{y: &{L3} usize}. We now say a loan \(L\) is \emph{live}, if \emph{some live variable} has \(L\) in its type~\cite{rust:polonius-talk}.
+The lifetime of the borrow created at line 3 is now the set of loans that the borrow may have come from. There is only one loan that fits and that is the loan done at line 3. The lifetime of \mintinline{text}{y} is thus \(\{\texttt{L}3\}\) and \mintinline{text}{y}'s type is \mintinline{rust}{y: &{L3} usize}. We now say a loan \(L\) is \emph{live}, if \emph{some live variable} has \(L\) in its type~\cite{rust:polonius-talk}.
 
-Since \mintinline{text}{y} is never live, the loan from line 3 isn't either, hence the mutation on line 4 is invalid. If we were to add a fifth line that is a use of \mintinline{text}{y} like so:
+Since \mintinline{text}{y} is never live, the loan from line 3 isn't either, hence the mutation on line 4 is valid. If we were to add a fifth line that is a use of \mintinline{text}{y}, \mintinline{text}{y} would become live, \(\texttt{L}3\) would become live, and the mutation on line 4 becomes invalid:
 \begin{minted}[linenos]{rust}
   fn main() {
     let mut x = 5;
     let y: &usize = &x;
-    x += 1;
+    x += 1; // error, because y is live
     println!("{y}");
   }
 \end{minted}
