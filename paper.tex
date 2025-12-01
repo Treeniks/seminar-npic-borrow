@@ -384,9 +384,9 @@ It is worth noting again that this is only a simplified view of the topic. \cite
 
 \section{The Real World of Rust} \label{sec:rust}
 
-In this section, we will explore how Rust uses and extends the ideas of linear types to achieve its claimed memory safety, while keeping the cost in programming ergonomics low. We will make use of several features implemented in Rust's standard library~\cite{rust:std} for the examples.
+In this section, we will explore how Rust uses and extends the ideas of linear types. Rust relies on the fact that a variable of a linear type is the unique owner of the value's memory. That way, Rust can prevent various memory safety related issues with the help of its type checker, completely at compile time, keeping the cost in runtime performance low. We will make use of several features implemented in Rust's standard library~\cite{rust:std} for the examples.
 
-Many programming languages implement the ideas behind linear types in some ways. For example, C++'s move constructors and move assignment operators allow smart pointers (like \mintinline{text}{std::vector}) to be used in a linear style. And while there are also languages explicitly implementing linear types~\cite{austral-intro, par-docs}, Rust is probably the most well known application of the concept.
+Many programming languages implement the ideas behind linear types in some ways. And while there are also languages explicitly implementing linear types~\cite{austral-intro, par-docs}, Rust is probably the most well known application of the concept.
 
 Although that isn't quite accurate. Rust does in fact \emph{not} prevent Weakening. In particular, Rust can create memory leaks, and it is explicitly supported with \mintinline{rust}{std::mem::forget} (although this did cause issues in the past~\cite{rust:poop}). Instead, it is more accurate to categorize Rust's type system as \emph{affine}. Affine logic is linear logic plus Weakening. Alternatively, it is a logic without Contraction.
 
@@ -554,7 +554,7 @@ Instead, what one would like to do is be able to return borrows from functions l
     &v[index]
   }
 \end{minted}
-And this code will actually compile with the Rust compiler today, but only because of some non-trivial heuristics.
+This code will actually compile with the Rust compiler today.
 
 The issue with naively allowing references in function return types is that references don't have an infinite lifetime. A borrow must not live longer than the value's owner, or else there is a risk of a dangling reference which is alive even after the owner was dropped. This is where Rust's notion of \emph{lifetimes} come into play.
 
@@ -566,7 +566,11 @@ The fundamental rule is that a reference's lifetime must be entirely contained w
 
 Lifetimes also come in the form of Lifetime parameters, and their names are of the form \enquote{\mintinline{text}{'a}}. These are similar to generic type parameters, only instead of quantifying over types, they quantify over lifetimes.
 
-The \mintinline{text}{get} function definition from before is actually just a short form of this definition:
+% TODO not sure how and if this is relevant, requires some better source probably (Oxide/RustBelt)
+%
+% One detail we skipped over in \cref{sec:theory} is that a generic function like \mintinline{rust}{fn alloc<T>(t: T) -> *T} can be seen as a universally quantified proposition \(\forall \texttt{T}\ldotp \texttt{T} \rightarrow *\texttt{T}\). In the same way, functions that are generic over lifetimes have a similar meaning: We are quantifying over all possible lifetimes.
+
+The \mintinline{text}{get} function definition from \cref{sec:rust:lifetimes} made use of Rust's lifetime parameter elision rules, which are designed to reduce the number of cases where explicit lifetime annotations are required. We can make the lifetime parameters explicit:
 \begin{minted}[linenos]{rust}
   fn get<'a, T>(v: &'a Vec<T>, index: usize)
       -> &'a T {
@@ -592,10 +596,6 @@ This connection becomes clearer when looking at a caller of \mintinline{text}{ge
   \draw[overlay, Stealth-Stealth, thick] (begin) -- (begin-mid) -- node[right] {lifetime \mintinline{text}{'a}} (end-mid) -- (end);
 \end{tikzpicture}
 This code will not compile. The borrow checker notices that \mintinline{text}{x} gets used in \cref*{line:lifetime:xuse}, thus the lifetime \mintinline{text}{'a} must include \emph{at least} \cref*{line:lifetime:x,line:lifetime:push1,line:lifetime:push2,line:lifetime:xuse}. The \mintinline{text}{get} function gets instantiated with this \mintinline{text}{'a} lifetime, and hence the lifetime of the \mintinline{text}{&v} borrow must also live at least until \cref*{line:lifetime:xuse}. Thus, an immutable borrow exists during \cref*{line:lifetime:push1,line:lifetime:push2}, so the mutation is not sound.
-
-% TODO not sure how and if this is relevant, requires some better source probably (Oxide/RustBelt)
-%
-% One detail we skipped over in \cref{sec:theory} is that a generic function like \mintinline{rust}{fn alloc<T>(t: T) -> *T} can be seen as a universally quantified proposition \(\forall \texttt{T}\ldotp \texttt{T} \rightarrow *\texttt{T}\). In the same way, functions that are generic over lifetimes have a similar meaning: We are quantifying over all possible lifetimes.
 
 \subsubsection{Non-Lexical Lifetimes} \label{sec:rust:nll}
 
@@ -682,7 +682,7 @@ Polonius~\cite{rust:polonius-repo} is a new approach to lifetimes that tries to 
 \end{minted}
 The lifetime of the borrow created at \cref*{line:nll-ex:y} is now the set of loans that the borrow may have come from. There is only one loan that fits and that is the loan done at \cref*{line:nll-ex:y}. The lifetime of \mintinline{text}{y} is thus \(\{\texttt{L}3\}\) and \mintinline{text}{y}'s type is \mintinline{rust}{y: &{L3} usize}. We now say a loan \(L\) is \emph{live}, if \emph{some live variable} has \(L\) in its type~\cite{rust:polonius-talk}.
 
-Since \mintinline{text}{y} is never live, the loan from \cref*{line:nll-ex:y} isn't either, hence the mutation on \cref*{line:nll-ex:mut} is valid. If we were to add another line that is a use of \mintinline{text}{y}, \mintinline{text}{y} would become live, \(\texttt{L}3\) would become live, and the mutation on \cref*{line:nll-ex:mut} becomes invalid:
+Since \mintinline{text}{y} is never live, the loan from \cref*{line:nll-ex:y} isn't either, hence the mutation on \cref*{line:nll-ex:mut} is valid. If we were to add another line that is a use of \mintinline{text}{y}, \mintinline{text}{y} would become live, so would \(\texttt{L}3\), and the mutation on \cref*{line:nll-ex:mut} becomes invalid:
 \begin{minted}[linenos, mathescape]{rust}
   fn main() {
     let mut x = 5;
