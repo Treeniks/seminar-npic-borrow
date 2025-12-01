@@ -138,6 +138,8 @@ A rule like these describes a step of logical reasoning. The core idea is that, 
 \end{description}
 The second interpretation becomes particularly relevant when writing proofs. One would start with the statement one wants to proof, and by applying the rules of natural deduction from bottom to top, it becomes clear what is needed to proof first. The first interpretation on the other hand is how we normally convey proofs to others. One starts with the axioms or known facts, and keeps deriving new facts until the goal is reached.
 
+Actual proofs are usually written as proof trees, where each branch is an instantiation of a rule and leaves are axioms. For example, \cref{fig:intuitionistic:logic:proof} shows the tree that proofs \(A \rightarrow B, A \vdash A \land B\).
+
 \begin{figure}[H]
   \begin{prooftree}
     \AxiomC{}
@@ -166,8 +168,6 @@ The second interpretation becomes particularly relevant when writing proofs. One
   \end{prooftree}
   \caption{Proof of \(A \rightarrow B, A \vdash A \land B\)} \label{fig:intuitionistic:logic:proof}
 \end{figure}
-
-Actual proofs are usually written as proof trees, where each branch is an instantiation of a rule and leaves are axioms. For example, \cref{fig:intuitionistic:logic:proof} shows the tree that proofs \(A \rightarrow B, A \vdash A \land B\).
 
 Of particular interest for us are the Contraction and Weakening rules. Contraction being the ability to duplicate truths as much as we like, while Weakening is the ability to forget truths.
 
@@ -198,7 +198,7 @@ Of particular interest for us are the Contraction and Weakening rules. Contracti
 
 We will now move away from logic and into the theory of computation and types. To talk about types we first need a programming language, for which we will use a small, limited and typed lambda calculus, the grammar of which can be seen in \cref{fig:intuitionistic:types:grammar}. We write \(t : \alpha\) to denote that term \(t\) has type \(\alpha\).
 
-Similarly to when we defined natural deduction rules to define the notion of logical reasoning, here we will define typing judgements which outline what types certain terms have. We write \(\Gamma \vdash t : \tau\) to say that, under the typing context \(\Gamma\), the term \(t\) has type \(\tau\) (and hence \(t\) is well typed). Typing contexts are a list of assignments from variables to types \(x_0 : \tau_0, x_1 : \tau_1 \dots x_n : \tau_n\). The judgement rules can be seen in \cref{fig:intuitionistic:types:judgements}.
+Similarly to when we defined natural deduction rules to define the notion of logical reasoning, here we will define typing judgement rules which outline what types certain terms have. We write \(\Gamma \vdash t : \tau\) to say that, under the typing context \(\Gamma\), the term \(t\) has type \(\tau\) (and hence \(t\) is well typed). Typing contexts are a list of assignments from variables to types \(x_0 : \tau_0, x_1 : \tau_1 \dots x_n : \tau_n\). The judgement rules can be seen in \cref{fig:intuitionistic:types:judgements}.\footnote{The notation \(u[x/y,x/z]\) means to replace all occurrences of \(y\) and \(z\) in \(u\) by \(x\).}
 
 \begin{figure*}
   \begin{prooftree}
@@ -291,7 +291,7 @@ We mentioned how intuitionistic logic is a system of constructive proofs in \cre
 
 Just like with intuitionistic types, before we can jump into linear types, we must first have a look at linear logic. So we will now leave type systems again and take a step back into pure logic, before using the same Curry-Howard isomorphism from \cref{sec:intuitionistic:curry-howard}, to translate linear logic into linear types.
 
-Linear logic is the idea that not all truths are free. With intuitionistic logic, we could duplicate and forget truths as much as we wanted, and in a mathematical sense, that is what we want. If one proves the \emph{Maximum Modulus Theorem}, that theorem can be further used to proof \emph{Schwarz's Lemma} as well as the \emph{Phragmén-Lindelöf Theorem}~\cite{conway-complex}. We don't somehow lose access to the \emph{Maximum Modulus Theorem} after proving \emph{Schwarz's Lemma}. However, duplication is not free in the real world. If \(A\) means \enquote{I have 60 rupees}, \(B\) means \enquote{I can buy 30 arrows} (that cost 60 rupees total) and \(C\) means \enquote{I can buy a Deku Shield} (which costs 40 rupees), then the following shows a proof of how 60 rupees can buy both in intuitionistic logic by duplicating \(A\):
+Linear logic is the idea that not all truths are free. With intuitionistic logic, we can duplicate and forget truths as much as we want. In a mathematical sense, if one proves the \emph{Maximum Modulus Theorem}, that theorem can be further used to proof \emph{Schwarz's Lemma} as well as the \emph{Phragmén-Lindelöf Theorem}~\cite{conway-complex}. We don't somehow lose access to the \emph{Maximum Modulus Theorem} after proving \emph{Schwarz's Lemma}. However, duplication is not free in the real world. If \(A\) means \enquote{I have 60 rupees}, \(B\) means \enquote{I can buy 30 arrows} (that cost 60 rupees total) and \(C\) means \enquote{I can buy a Deku Shield} (which costs 40 rupees), then the following shows a proof of how 60 rupees can buy both in intuitionistic logic by duplicating \(A\):
 \begin{center}
   \begin{prooftree}
     \AxiomC{\(A \vdash B\)}
@@ -308,7 +308,7 @@ The issue is with the Contraction and Weakening rules, both of which linear logi
 
 The core idea is to split propositions into two groups: linear and intuitionistic. Intuitionistic propositions, denoted just as before, work as we know and allow for Contraction and Weakening, while linear propositions, denoted \(\langle A\rangle\), allow everything but Contraction and Weakening. The notation for the logical connectives also changes, and their meaning may now differ.
 
-\(A \rightarrow B\) becomes \(A \multimap B\) and whereas before we could freely convert \(A\) into \(B\), if \(A\) is linear the operation completely consumes our \(A\). \(A \land B\) becomes \(A \otimes B\) and while there is not a big difference in meaning, there are other formulations of conjunctives that are equivalent in intuitionistic logic, but have a profoundly different meaning in linear logic~\cite{wadler-linear-taste}.
+\(A \rightarrow B\) becomes \(A \multimap B\) (called \enquote{lolli}) and whereas before we could freely convert \(A\) into \(B\), if \(A\) is linear the operation completely consumes it. \(A \land B\) becomes \(A \otimes B\) (called \enquote{tensor}) and while there is not a big difference in meaning, there are other formulations of conjunctives that are equivalent in intuitionistic logic, but have a profoundly different meaning in linear logic~\cite{wadler-linear-taste}.
 % TODO maybe write a footnote with more detail, or do an appendix with a full explanation?
 
 Note that for our example proof from \cref{fig:intuitionistic:logic:proof}, if we make the assumption \(A\) linear, we get: \[A \multimap B, \langle A\rangle \vdash A \otimes B\] But this isn't provable any more, as we would need to duplicate \(\langle A\rangle\).
@@ -387,7 +387,7 @@ We mentioned in \cref{sec:linear:logic} that linear logic doesn't just outright 
 
 \subsubsection{Non-\Copy{} Types}
 
-Types that don't implement \Copy{} act like our linear types. To improve ergonomics, Rust uses the notion of \emph{Ownership} and \emph{move-semantics} for values of these types. A variable of a non-\Copy{} type \emph{owns} the corresponding value, and a value of a non-\Copy{} type can only ever have a single owner. In the following, we will use the \mintinline{rust}{std::vec::Vec} type as an example for an owned type. The following code will be rejected by Rust's compiler:
+Types that don't implement \Copy{} act like our linear types. To improve ergonomics, Rust uses the notion of \emph{Ownership} and \emph{move-semantics} for values of these types. A variable of a non-\Copy{} type \emph{owns} the corresponding value, and a value of a non-\Copy{} type can only ever have a single owner. In the following, we will use the \mintinline{text}{std::vec::Vec} type as an example for an owned type. The following code will be rejected by Rust's compiler:
 \begin{minted}[linenos]{rust}
   let mut v = vec![];
   let mut w = v;
@@ -396,11 +396,11 @@ Types that don't implement \Copy{} act like our linear types. To improve ergonom
 \end{minted}
 Line 1 defines the variable \mintinline{text}{v} that is the unique owner of the underlying vector. Line 2 \emph{moves} the value to \mintinline{text}{w}. Rust knows that the ownership of the underlying vector has moved from \mintinline{text}{v} to \mintinline{text}{w}, hence \mintinline{text}{v} cannot be used after line 2. Line 3 causes an error.
 
-Note that this code does not violate Weakening. Similar to C++, Rust implicitly calls a destructor at the end of a variable's scope. In Rust terminology, this destructor function is called \mintinline{text}{drop}, and \mintinline{text}{std::vec::Vec}'s \mintinline{text}{drop} implementation would free whatever heap memory was allocated for the vector.
+Note that this code does not use Weakening. Similar to C++, Rust implicitly calls a destructor at the end of a variable's scope. In Rust terminology, this destructor function is called \mintinline{text}{drop}, and \mintinline{text}{std::vec::Vec}'s \mintinline{text}{drop} implementation would free whatever heap memory was allocated for the vector.
 
 \subsubsection{\Copy{} Types}
 
-Types implementing the \Copy{} marker trait represent values stored on the stack, which can be copied cheaply~\cite[Chapter 4.1]{rust:book}. While the type system doesn't actually prevent us from implementing \Copy{} on any type we want, it does prevent us from implemented both \Copy{} \emph{and} \mintinline{text}{Drop}~\cite{rust:ops-drop} on the same type.
+Types implementing the \Copy{} marker trait represent values stored on the stack, which can be copied cheaply~\cite[Chapter 4.1]{rust:book}. While the type system doesn't actually prevent us from implementing \Copy{} on any type we want, it does prevent us from implementing both \Copy{} \emph{and} \mintinline{text}{Drop}~\cite{rust:ops-drop} on the same type.
 
 If we replace the vector with an integer in the above code, the Rust compiler will accept it:
 \begin{minted}[linenos]{rust}
@@ -416,7 +416,7 @@ If we replace the vector with an integer in the above code, the Rust compiler wi
   \begin{subfigure}{0.46\textwidth}
     \begin{minted}[linenos]{rust}
       fn get_len(s: Vec<usize>) -> usize {
-        // ...
+          s.len()
       }
       let v = vec![];
       let len = get_len(v);
@@ -427,10 +427,10 @@ If we replace the vector with an integer in the above code, the Rust compiler wi
   \begin{subfigure}{0.52\textwidth}
     \begin{minted}[linenos]{rust}
       fn get_len(s: Vec<usize>) -> (Vec<usize>, usize) {
-        // ...
+          let len = s.len(); (s, len)
       }
       let v0 = vec![];
-      let (v1, len) = get_len(v0);
+      let (mut v1, len) = get_len(v0);
       v1.push(1); // fine
     \end{minted}
     \caption{Capability-Passing-Style} \label{lst:get_len:capability-passing-style}
@@ -440,7 +440,7 @@ If we replace the vector with an integer in the above code, the Rust compiler wi
 
   \begin{subfigure}{0.5\textwidth}
     \begin{minted}[linenos]{rust}
-      fn gen_len(s: &Vec<usize>) -> usize { /* ... */ }
+      fn gen_len(s: &Vec<usize>) -> usize { s.len() }
       let mut v = vec![];
       let len = gen_len(&v); // borrows v
       v.push(1);
@@ -461,10 +461,11 @@ The idea of borrowing builds upon the notion of references from languages like C
 There are two kinds of borrows: immutable and mutable borrows. Immutable borrows, indicated by a single \mintinline{text}{&}, allow read-only access to the underlying data, whereas mutable borrows, indicated by \mintinline{text}{&mut}, also allow mutation. The same \mintinline{text}{gen_len} function from before can now be expressed using an immutable borrow, as seen in \cref{lst:get_len:borrows}.
 
 The usefulness of this approach goes beyond better ergonomics: A function argument that takes an immutable borrow also conveys a programmer's \emph{intent}: This function \emph{does not change the underlying object}, which is enforced by the compiler as well.
+% TODO maybe mention parallel to const references?
 
-Mutable borrows allow more operations, but are also governed by stricter rules than immutable borrows. The main difference is that an object can have any number of immutable borrows, but only ever a single mutable borrow. In particular, an object cannot hold immutable and mutable borrows at the same time. Hence, immutable borrows are often referred to as "shared references", while mutable borrows are often called "exclusive references".
+Mutable borrows allow more operations, but are also governed by stricter rules than immutable borrows. The main difference is that an object can have any number of immutable borrows, but only ever a single mutable borrow. In particular, an object cannot have immutable and mutable borrows at the same time. Hence, immutable borrows are often referred to as "shared references", while mutable borrows are often called "exclusive references".
 
-Viewing immutable borrows from the lens of the \mintinline{text}{alloc} example from \cref{sec:linear:types}, an immutable borrow of \(*\tau\) is a type that sacrifices \mintinline{text}{free} and \mintinline{text}{store} in favour of reintroducing the Contraction and Weakening rules~\cite{from-linearity-to-borrowing}. In fact, Rust has a blanket implementation of the \Copy{} trait for all immutable references~\cite{rust:marker-copy} for this very purpose. On the other hand, a mutable borrow only sacrifices \mintinline{text}{free} in favour of Weakening.
+Viewing immutable borrows from the lens of the \mintinline{text}{alloc} example from \cref{sec:linear:types}, an immutable borrow of \(\langle *\tau\rangle\) is a type that sacrifices \mintinline{text}{free} and \mintinline{text}{store} in favour of reintroducing the Contraction and Weakening rules~\cite{from-linearity-to-borrowing}. In fact, Rust has a blanket implementation of the \Copy{} trait for all immutable references~\cite{rust:marker-copy} for this very purpose. On the other hand, a mutable borrow only sacrifices \mintinline{text}{free} in favour of Weakening.
 
 \subsubsection{Exclusivity of Mutable Borrows}
 
@@ -484,8 +485,9 @@ To illustrate \cref{motivations:aliasing}, we will use an example by \citet{rust
     \begin{minted}[linenos]{rust}
       fn compute(input: &u32,
                  output: &mut u32) {
-        if *input > 10 { *output = 1; }
-        if *input > 5 { *output *= 2; }
+
+          if *input > 10 { *output = 1; }
+          if *input > 5 { *output *= 2; }
       }
     \end{minted}
     \caption{Before Transformation} \label{lst:aliasing:before-transformation}
@@ -495,9 +497,9 @@ To illustrate \cref{motivations:aliasing}, we will use an example by \citet{rust
     \begin{minted}[linenos]{rust}
       fn compute(input: &u32,
                  output: &mut u32) {
-        let tmp = *input;
-        if tmp > 10 { *output = 1; }
-        if tmp > 5 { *output *= 2; }
+          let tmp = *input;
+          if tmp > 10 { *output = 1; }
+          if tmp > 5 { *output *= 2; }
       }
     \end{minted}
     \caption{After Transformation} \label{lst:aliasing:after-transformation}
@@ -513,15 +515,15 @@ To illustrate \cref{motivations:aliasing}, we will use an example by \citet{rust
   let m = &mut v;
   let x = &v[1]; // x points to value `2`
   m.clear(); // empties the vector behind m
-  *x;
+  println!("{x}");
 \end{minted}
 Line 1 creates a vector with 2 elements called \mintinline{text}{v}. \mintinline{text}{m} is a mutable reference to \mintinline{text}{v}, while \mintinline{text}{x} is an immutable reference to \mintinline{text}{v}'s second element. Because \mintinline{text}{m} is a mutable reference, we can use it to clear the vector in line 4, leaving \mintinline{text}{x} as a dangling reference to potentially freed memory.
 
-The relevant issue is that, even though a mutable reference doesn't allow \emph{dropping} a value (mutable references still allow Weakening), mutation can result in memory being freed or moved. If other references were to alias that same memory, we have a data race.
+The relevant issue is that, even though a mutable reference doesn't allow \emph{dropping} a value (mutable references still allow Weakening), mutation can result in memory being freed or moved. If other references were to alias that same memory, they may become dangling references.
 
 \subsection{Lifetimes} \label{sec:rust:lifetimes}
 
-So far, we could lend values to functions by creating borrows, but the space of possible return types was still limited to owned values. This is not a concern for \Copy{} types, but becomes a concern once we try to return some substructure of our type. For example, a typical operation on vectors is a \mintinline{text}{get} function, which takes an index and returns the value at that given index:
+So far, we could lend values to functions by creating borrows, but the space of possible return types was still limited to owned values. This is not a concern if one returns \Copy{} types, but becomes a concern once one tries to return some substructure of a non-\Copy{} type. For example, a typical operation on vectors is a \mintinline{text}{get} function, which takes an index and returns the value at that given index:
 \begin{minted}[linenos]{rust}
   fn get(v: &Vec<usize>, index: usize)
       -> usize {
@@ -531,12 +533,11 @@ So far, we could lend values to functions by creating borrows, but the space of 
 
 But \mintinline{text}{Vec} is a \emph{generic} data type. We can create vectors of any type \mintinline{text}{T} of which the size is known at compile time, so a function like \mintinline{text}{get} should be generic over the type of the vector:
 \begin{minted}[linenos]{rust}
-  fn get<T>(v: &Vec<T>, index: usize)
-      -> T {
+  fn get<T>(v: &Vec<T>, index: usize) -> T {
     v[index]
   }
 \end{minted}
-And herein lies the issue: \mintinline{text}{T} might not be \Copy{}. The return value \mintinline{rust}{-> T} implies that the function returns an \emph{owned} value of \mintinline{text}{T}. This, however, is not the case: the owner of the value we are trying to get to is the owner of the vector, which lies somewhere in the caller. We cannot take ownership of \mintinline{rust}{v[index]}, because we do not have ownership of \mintinline{text}{v}. Of course, we could limit \mintinline{text}{get} to be only instantiatable for types \mintinline{text}{T} that \emph{are} \Copy{}, but this limits the usefulness of \mintinline{text}{get} significantly.
+And herein lies the issue: \mintinline{text}{T} might not be \Copy{}. The return value \mintinline{rust}{-> T} implies that the function returns an \emph{owned} value of \mintinline{text}{T}. This, however, is not the case: the owner of the value we are trying to get to is the owner of the vector, which lies somewhere in the caller. We cannot take ownership of \mintinline{text}{v[index]}, because we do not have ownership of \mintinline{text}{v}. Of course, we could limit \mintinline{text}{get} to be only instantiatable for types \mintinline{text}{T} that \emph{are} \Copy{}, but this limits the usefulness of \mintinline{text}{get} significantly.
 
 Instead, what one would like to do is be able to return borrows from functions like so:
 \begin{minted}[linenos]{rust}
@@ -546,15 +547,15 @@ Instead, what one would like to do is be able to return borrows from functions l
 \end{minted}
 And this code will actually compile with the Rust compiler today, but only because of some non-trivial heuristics.
 
-The issue with naively allowing references in function return types is that references don't have an infinite lifetime. A borrow must not live longer than the value's owner, or else there is a risk of a dangling reference which is alive even after the owner was dropped. This is where Rust's notion of \emph{Lifetimes} come into play.
+The issue with naively allowing references in function return types is that references don't have an infinite lifetime. A borrow must not live longer than the value's owner, or else there is a risk of a dangling reference which is alive even after the owner was dropped. This is where Rust's notion of \emph{lifetimes} come into play.
 
-Every value has a Lifetime. In its simplest form, a value's lifetime begins on the line where its constructor is called and ends when its destructor is called (i.e. when it goes out of scope and \mintinline{text}{drop} gets called). References also have lifetimes, which starts where the borrow happens, and ends on the reference's last use.~\cite{rust:nll-intro}
+Every value has a lifetime. In its simplest form, a value's lifetime begins on the line where its constructor is called and ends when its destructor is called (i.e. when it goes out of scope and \mintinline{text}{drop} gets called). References also have lifetimes, which start where the borrow happens, and end on the reference's last use.~\cite{rust:nll-intro}
 
 The fundamental rule is that a reference's lifetime must be entirely contained within the corresponding value's lifetime. This is the job of Rust's \emph{borrow checker}, a part of the compiler that makes sure this rule is never broken.
 
 \subsubsection{Lifetime Parameters}
 
-Lifetimes also come in the form of Lifetime parameters, and their names are of the form \enquote{\mintinline{text}{'a}}. These are similar to generic type parameters, only instead of quantifying functions over types, they quantify functions over lifetimes.
+Lifetimes also come in the form of Lifetime parameters, and their names are of the form \enquote{\mintinline{text}{'a}}. These are similar to generic type parameters, only instead of quantifying over types, they quantify over lifetimes.
 
 The \mintinline{text}{get} function definition from before is actually just a short form of this definition:
 \begin{minted}[linenos]{rust}
@@ -590,14 +591,14 @@ This code will not compile. The borrow checker notices that \mintinline{text}{x}
 \subsubsection{Non-Lexical Lifetimes} \label{sec:rust:nll}
 
 Prior to the 2018 edition of Rust (which was stabilized with Rust version 1.31~\cite{rust:2018-release}), the following code was not accepted by the borrow checker:
-\begin{minted}[linenos]{rust}
+\begin{minted}[linenos, mathescape]{rust}
   fn main() {
     let mut x = 5;
     let y: &usize = &x;
     x += 1;
   }
 \end{minted}
-Even though we mutate \mintinline{text}{x} while an immutable borrow (\mintinline{text}{y}) exists to the underlying value, this code is completely safe, because \mintinline{text}{y} is never used after the mutation. Yet, the code used to give an error due to this aliasing. This is because lifetimes followed lexical scopes. Line 2 creates an immutable borrow of \mintinline{text}{x}, its lifetime being bound to the scope of variable \mintinline{text}{y}. Because \mintinline{text}{y} stays in scope until the end of \mintinline{text}{main}, so does the immutable borrow.
+Even though we mutate \mintinline{text}{x} while an immutable borrow (\mintinline{text}{y}) exists to the underlying value, this code is completely safe, because \mintinline{text}{y} is never used after the mutation. Yet, the code used to give an error due to this aliasing. This is because lifetimes followed lexical scopes. Line 3 creates an immutable borrow of \mintinline{text}{x}, its lifetime being bound to the scope of variable \mintinline{text}{y}. Because \mintinline{text}{y} stays in scope until the end of \mintinline{text}{main}, so does the immutable borrow.
 
 Static analysis is inherently conservative, and the Rust compiler will always have cases where it rejects safe programs because of technical limitations of its analysis. The issue presented here, however, was solved with Rust edition 2018 with the stabilization of \emph{non-lexical lifetimes} (NLL for short)~\cite{rust:nll-intro, rust:nll2}. Instead of calculating lifetimes based on lexical scopes, the borrow checker today uses \emph{liveness\footnote{A variable is considered live at a point in the program, if it might be used sometime after that point.} analysis} of variables to define more concise lifetimes.
 
@@ -625,31 +626,32 @@ The mutation in line 4 thus doesn't overlap with the lifetime of an immutable bo
 
 \subsection{Polonius} \label{sec:rust:polonius}
 
-Even with NLL, there are still issues with today's borrow checker in practice. The typical example by \citet{rust:polonius-talk, rust:nll-intro, rust:nll2} is the attempt at a function that takes a mutable reference to a \mintinline{text}{HashMap}, returns the value behind some key, and inserts a default value for that key if the key isn't already present in the map (as in \cref{lst:get_or_insert:definition})\footnote{Note that this specific example was a primary motivation for the development of Rust's \mintinline{text}{HashMap::entry} API~\cite{rust:std} which should be used for this specific use case instead.}.
+Even with NLL, there are still issues with today's borrow checker in practice. The typical example by \citet{rust:polonius-talk, rust:nll-intro, rust:nll2} is the attempt at a function that takes a mutable reference to a \mintinline{text}{HashMap}, returns the value behind some key, and inserts a default value for that key if the key isn't already present in the map (as in \cref{lst:get_or_insert:definition}).\footnote{Note that this specific example was a primary motivation for the development of Rust's \mintinline{text}{HashMap::entry} API~\cite{rust:std} which should be used for this specific use case instead.}
 
 \begin{figure*}
   \begin{subfigure}[t]{0.48\textwidth}
     \begin{minted}[linenos]{rust}
       fn get_or_insert<'a>(
-        map: &'a mut HashMap<usize, usize>,
-      ) -> &'a String {
-        match map.get(&69) {
-          Some(v) => v,
-          None => {
-            map.insert(69, 420);
-            &map[&69]
+          map: &'a mut HashMap<usize, usize>,
+          key: usize,
+      ) -> &'a usize {
+          match map.get(&key) {
+              Some(v) => v,
+              None => {
+                  map.insert(key, 420);
+                  &map[&key]
+              }
           }
-        }
       }
     \end{minted}
     \caption{Definition} \label{lst:get_or_insert:definition}
   \end{subfigure}
-  \begin{subfigure}[t]{0.48\textwidth}
+  \begin{subfigure}[t]{0.4\textwidth}
     \begin{minted}[linenos, firstnumber=last]{rust}
       fn main() {
-        let mut map = HashMap::new();
-        let v = get_or_insert(&mut map);
-        println!("{v}");
+          let mut map = HashMap::new();
+          let v = get_or_insert(&mut map, 69);
+          println!("{v}");
       }
     \end{minted}
     \caption{Caller} \label{lst:get_or_insert:caller}
@@ -657,9 +659,9 @@ Even with NLL, there are still issues with today's borrow checker in practice. T
   \caption{\mintinline{text}{get_or_insert} Lifetime Example} \label{lst:get_or_insert}
 \end{figure*}
 
-This function fails to compile on today's Rust, even with NLL. The issue lies in line 5: \mintinline{rust}{map.get(&69)} is short for \mintinline{rust}{HashMap::get(&*map, &69)}. In particular, line 4 creates an immutable borrow of \mintinline{text}{map}. This borrow has a lifetime, and with the view of NLL, that lifetime corresponds to a set of lines where the borrow may still be used. However, the value returned by the call to \mintinline{text}{get} might actually be returned to the caller, so the lifetime of this borrow is not confined to this function. The lifetime applied to the borrow of map is thus \mintinline{text}{'a}.
+This function fails to compile on today's Rust, even with NLL. \mintinline{rust}{map.get(&key)} is short for \mintinline{rust}{HashMap::get(&*map, &key)}. In particular, line 5 creates an immutable borrow of \mintinline{text}{map}. This borrow has a lifetime, and with the view of NLL, that lifetime corresponds to a set of lines where the borrow may still be used. However, the value returned by the call to \mintinline{text}{get} might actually be returned to the caller, so the lifetime of this borrow is not confined to this function. The lifetime applied to the borrow of map is thus \mintinline{text}{'a}.
 
-\Cref{lst:get_or_insert:caller} shows a potential caller to the \mintinline{text}{get_or_insert} function. The lifetime that \mintinline{text}{get_or_insert} is instantiated with will be \(\{14, 15\}\), representing lines 14 and 15, and line 14 actually includes the \emph{entire} call of \mintinline{text}{get_or_insert}. In \cref{sec:rust:nll} we mentioned that a non-lexical lifetime can be seen as a set of lines. However, it can also be a named lifetime like \mintinline{text}{'a}. In this example, the named lifetime \mintinline{text}{'a} from \mintinline{text}{get_or_insert} is a lifetime that exists somewhere in the caller, because the function \emph{returns a value of lifetime \mintinline{text}{'a}}. The lifetime gets blown up to the entirety of the \mintinline{text}{get_or_insert} function, and will include the \mintinline{text}{None} branch. When we now try to create another mutable borrow in that \mintinline{text}{None} branch, the borrow checker sees overlapping mutable and immutable borrows and errors out.
+\Cref{lst:get_or_insert:caller} shows a potential caller to the \mintinline{text}{get_or_insert} function. The lifetime that \mintinline{text}{get_or_insert} is instantiated with will be \(\{15, 16\}\), representing lines 15 and 16, and line 15 actually includes the \emph{entire} call of \mintinline{text}{get_or_insert}. In \cref{sec:rust:nll} we mentioned that a non-lexical lifetime can be seen as a set of lines. However, it can also be a named lifetime like \mintinline{text}{'a}. In this example, the named lifetime \mintinline{text}{'a} from \mintinline{text}{get_or_insert} is a lifetime that exists somewhere in the caller, because the function \emph{returns a value of lifetime \mintinline{text}{'a}}. The lifetime gets blown up to the entirety of the \mintinline{text}{get_or_insert} function, and will include the \mintinline{text}{None} branch. When we now try to mutate inside the \mintinline{text}{None} branch (by calling \mintinline{text}{insert}), the borrow checker sees overlapping mutable and immutable borrows and errors out.
 
 Polonius~\cite{rust:polonius-repo} is a new approach to lifetimes that tries to resolve this issue. With Polonius, a lifetime is not a set of lines where the borrow is live, but instead a set of \emph{loans} that the borrow might have come from, where a loan is the creation of a borrow. Analysing the simple example from \cref{sec:rust:nll}:
 \begin{minted}[linenos]{rust}
@@ -680,22 +682,22 @@ Since \mintinline{text}{y} is never live, the loan from line 3 isn't either, hen
     println!("{y}");
   }
 \end{minted}
-Previously with NLL, the lifetime (and hence type) of \mintinline{text}{y} would've changed. With Polonius, the lifetime and type of \mintinline{text}{y} stays unchanged. However, the liveness of \mintinline{text}{y} is still larger than before, and hence the liveness of the \(\texttt{L}3\) loan. Since \(\texttt{L}3\) is live at line 4, that mutation violates the rules of the \(\texttt{L}3\) loan, and the program is rejected by the borrow checker.
+Previously with NLL, the lifetime (and hence type) of \mintinline{text}{y} would've changed. With Polonius, the lifetime and type of \mintinline{text}{y} stays unchanged. However, the liveness of \mintinline{text}{y} is still larger than before, and hence also the liveness of the \(\texttt{L}3\) loan. Since \(\texttt{L}3\) is live at line 4, that mutation violates the rules of the \(\texttt{L}3\) loan, and the program is rejected by the borrow checker.
 
 Note the important distinction from NLL: With NLL, the liveness of the variable is encoded within its lifetime. With Polonius, the liveness of a variable is still required for the borrow checker, but the lifetimes themselves are decoupled entirely from liveness.
 
-The \mintinline{text}{get_on_insert} example from \cref{lst:get_or_insert:definition} now also poses no problem, and is the main motivation behind Polonius's development. The original issue was that the loan of \mintinline{text}{map} in line 4 got a lifetime that had to be set equal to \mintinline{text}{'a}, as that is the lifetime of the return value. \mintinline{text}{'a} is a named lifetime that spans the whole function. The lifetime of the loan from line 4 thus overlapped with the mutation from line 7.
+The \mintinline{text}{get_on_insert} example from \cref{lst:get_or_insert:definition} now also poses no problem, and is the main motivation behind Polonius's development. The original issue was that the loan of \mintinline{text}{map} in line 5 got a lifetime that had to be set equal to \mintinline{text}{'a}, as that is the lifetime of the return value. \mintinline{text}{'a} is a named lifetime that spans the whole function. The lifetime of the loan from line 5 thus overlapped with the mutation from line 8.
 
-With Polonius, we still have a loan at line 4, which we will call \(\texttt{L}4\). \(\texttt{L}4\) is part of \mintinline{text}{v}'s type, however, v is \emph{not live} at line 7. Hence, the loan \(\texttt{L}4\) is \emph{also} not live at line 7. Remember, with Polonius, the borrow checker needs to check if some instruction violates the rules of a loan that is live at that instruction. Since \mintinline{text}{v} is not live at line 7, neither is \(\texttt{L}4\), and so there is no loan that is violated. Thus, the program gets accepted.
+With Polonius, we still have a loan at line 5, which we will call \(\texttt{L}5\). \(\texttt{L}5\) is part of \mintinline{text}{v}'s type, however, v is \emph{not live} at line 8. Hence, the loan \(\texttt{L}5\) is \emph{also} not live at line 8. Remember, with Polonius, the borrow checker needs to check if some instruction violates the rules of a loan that is live at that instruction. Since \mintinline{text}{v} is not live at line 8, neither is \(\texttt{L}5\), and so there is no loan that is violated. Thus, the program gets accepted.
 
-It is important to note again that, at the time of writing, Polonius is a current development and not integrated in today's stable Rust compiler. The authors of Polonius themselves state, that it is not ready for widespread use~\cite{rust:polonius-book}.
+It is important to note that, at the time of writing, Polonius is a current development and not integrated in today's stable Rust compiler. The authors of Polonius themselves state, that it is not ready for widespread use~\cite{rust:polonius-book}.
 
 % TODO probably got no space for this left
 % \subsection{Lifetime Parameters for Structures}
 
 \section{Summary}
 
-Rust's type system has long evolved beyond its theoretical roots due to practical considerations, however its connection to linear types remains evident. In this paper, we displayed a limited view of Rust's ownership and borrowing rules, but many features and parts of Rust remain outside its scope. For example, contrary to its description from \cref{sec:rust:borrowing}, Rust \emph{does} support mutation through immutable borrows through the notion of interior mutability, which implement the borrow checking rules at runtime. Similarly, Rust's \mintinline{text}{unsafe} keyword allows certain operations, which permit circumventing the borrow checker for when its rules are too restrictive.
+Rust's type system has long evolved beyond its theoretical roots due to practical considerations, however its connection to linear types remains evident. In this paper, we displayed a limited view of Rust's ownership and borrowing rules, but many features and parts of Rust remain outside its scope. For example, contrary to the description from \cref{sec:rust:borrowing}, Rust \emph{does} support mutation through immutable borrows through the notion of interior mutability, which implements the borrow checking rules at runtime. Similarly, Rust's \mintinline{text}{unsafe} keyword allows certain operations, which permit circumventing the borrow checker for when its rules are too restrictive.
 
 Several challenges with the borrow checker still remain. Some of them will improve by the eventual introduction of Polonius into the stable compiler, others remain unsolved. For instance, self-referential structs remain a pain point for many Rust developers and still require the use of awkward or unsafe APIs.
 
