@@ -710,7 +710,7 @@ Rust's type system has long evolved beyond its theoretical roots due to practica
 
 Several challenges with the borrow checker still remain. Some of them will improve by the eventual introduction of Polonius into the stable compiler, others remain unsolved. For instance, self-referential structs remain a pain point for many Rust developers and still require the use of awkward or unsafe APIs.
 
-Ultimately however, the balance of safety guarantees and developer ergonomics offered by Rust is impressive. Even simple examples can cause complicated and intricate lifetime constraints, highlighting the extensive research and engineering effort required.
+Ultimately however, the balance of safety guarantees and developer ergonomics offered by Rust is impressive. Even simple examples can cause complicated and intricate lifetime constraints, highlighting the extensive research and engineering effort required. By utilizing linear types, the language manages to offer the performance of systems programming languages with manual memory management, all the while rarely requiring manual intervention, as the type system figures out most on its own. All this is done in the type checker at compile time, causing virtually no runtime performance overhead.
 
 % TODO maybe mention Polonius is written in Datalog?
 
