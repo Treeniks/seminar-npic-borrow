@@ -10,7 +10,7 @@
 \usepackage{hyphenat}
 \usepackage[capitalise, nameinlink, noabbrev]{cleveref}
 \usepackage{minted}
-\setminted{autogobble, numbersep=0.5em}
+\setminted{autogobble, numbersep=0.5em, escapeinside=||}
 \usemintedstyle{friendly}
 \usepackage[babel]{csquotes}
 
@@ -21,6 +21,15 @@
 \usepackage{simplebnf}
 
 \newcommand*{\Copy}{\mintinline{text}{Copy}}
+
+\newcounter{codeline}
+\newcommand*{\codelinelabel}[1]{
+  \refstepcounter{codeline}
+  \setcounter{codeline}{\value{FancyVerbLine}}
+  \label[codeline]{#1}
+}
+\crefname{codeline}{line}{lines}
+\Crefname{codeline}{Line}{Lines}
 
 \begin{document}
 \title{Linear Types and a Lifetime of Borrows}
@@ -388,13 +397,13 @@ We mentioned in \cref{sec:linear:logic} that linear logic doesn't just outright 
 \subsubsection{Non-\Copy{} Types}
 
 Types that don't implement \Copy{} act like our linear types. To improve ergonomics, Rust uses the notion of \emph{Ownership} and \emph{move-semantics} for values of these types. A variable of a non-\Copy{} type \emph{owns} the corresponding value, and a value of a non-\Copy{} type can only ever have a single owner. In the following, we will use the \mintinline{text}{std::vec::Vec} type as an example for an owned type. The following code will be rejected by Rust's compiler:
-\begin{minted}[linenos]{rust}
-  let mut v = vec![];
-  let mut w = v;
-  v.push(1); // error
+\begin{minted}[linenos, mathescape]{rust}
+  let mut v = vec![]; |\codelinelabel{line:non-copy:v}|
+  let mut w = v; |\codelinelabel{line:non-copy:w}|
+  v.push(1); // error $\codelinelabel{line:non-copy:e}$
   w.push(2);
 \end{minted}
-Line 1 defines the variable \mintinline{text}{v} that is the unique owner of the underlying vector. Line 2 \emph{moves} the value to \mintinline{text}{w}. Rust knows that the ownership of the underlying vector has moved from \mintinline{text}{v} to \mintinline{text}{w}, hence \mintinline{text}{v} cannot be used after line 2. Line 3 causes an error.
+\Cref*{line:non-copy:v} defines the variable \mintinline{text}{v} that is the unique owner of the underlying vector. \Cref*{line:non-copy:w} \emph{moves} the value to \mintinline{text}{w}. Rust knows that the ownership of the underlying vector has moved from \mintinline{text}{v} to \mintinline{text}{w}, hence \mintinline{text}{v} cannot be used after \cref*{line:non-copy:w}. \Cref*{line:non-copy:e} causes an error.
 
 Note that this code does not use Weakening. Similar to C++, Rust implicitly calls a destructor at the end of a variable's scope. In Rust terminology, this destructor function is called \mintinline{text}{drop}, and \mintinline{text}{std::vec::Vec}'s \mintinline{text}{drop} implementation would free whatever heap memory was allocated for the vector.
 
@@ -510,14 +519,14 @@ To illustrate \cref{motivations:aliasing}, we will use an example by \citet{rust
 \Cref{motivations:data-races} is primarily a concern in concurrent applications. If we cannot create two mutable views of an object, we can't have two threads both writing to it at the same time either.
 
 \Cref{motivations:dangling} is a more serious memory safety concern. See for example the following code, which Rust correctly refuses to compile:
-\begin{minted}[linenos]{rust}
-  let mut v = vec![1, 2];
+\begin{minted}[linenos, mathescape]{rust}
+  let mut v = vec![1, 2]; |\codelinelabel{line:dangling:v}|
   let m = &mut v;
   let x = &v[1]; // x points to value `2`
-  m.clear(); // empties the vector behind m
+  m.clear(); // empties the vector behind m $\codelinelabel{line:dangling:clear}$
   println!("{x}");
 \end{minted}
-Line 1 creates a vector with 2 elements called \mintinline{text}{v}. \mintinline{text}{m} is a mutable reference to \mintinline{text}{v}, while \mintinline{text}{x} is an immutable reference to \mintinline{text}{v}'s second element. Because \mintinline{text}{m} is a mutable reference, we can use it to clear the vector in line 4, leaving \mintinline{text}{x} as a dangling reference to potentially freed memory.
+\Cref*{line:dangling:v} creates a vector with 2 elements called \mintinline{text}{v}. \mintinline{text}{m} is a mutable reference to \mintinline{text}{v}, while \mintinline{text}{x} is an immutable reference to \mintinline{text}{v}'s second element. Because \mintinline{text}{m} is a mutable reference, we can use it to clear the vector in \cref*{line:dangling:clear}, leaving \mintinline{text}{x} as a dangling reference to potentially freed memory.
 
 The relevant issue is that, even though a mutable reference doesn't allow \emph{dropping} a value (mutable references still allow Weakening), mutation can result in memory being freed or moved. If other references were to alias that same memory, they may become dangling references.
 
@@ -567,12 +576,12 @@ The \mintinline{text}{get} function definition from before is actually just a sh
 \mintinline{text}{get} is not just generic over \mintinline{text}{T}, but also over the lifetime \mintinline{text}{'a}. When instantiating the function, both the type and the lifetime parameter must be instantiated to concrete types and lifetimes respectively. This new de-sugared function definition clearly states the \enquote{condition} that the returned borrow must fulfil: it's a reference that only lives as long as the borrow \mintinline{text}{&v}. The returned reference from \mintinline{text}{get} cannot be used \emph{after} the argument's lifetime ends.
 
 This connection becomes clearer when looking at a caller of \mintinline{text}{get}:
-\begin{minted}[linenos, escapeinside=||]{rust}
+\begin{minted}[linenos]{rust}
   let mut v = vec![1, 2];
-  let x: &usize = get(&v, 1); |\tikzmark{lifetime-begin}|
-  v.push(3);
-  v.push(4);
-  println!("{x}"); |\tikzmark{lifetime-end}|
+  let x: &usize = get(&v, 1); |\tikzmark{lifetime-begin}\codelinelabel{line:lifetime:x}|
+  v.push(3); |\codelinelabel{line:lifetime:push1}|
+  v.push(4); |\codelinelabel{line:lifetime:push2}|
+  println!("{x}"); |\tikzmark{lifetime-end}\codelinelabel{line:lifetime:xuse}|
 \end{minted}
 \begin{tikzpicture}[remember picture]
   \coordinate (begin) at (pic cs:lifetime-begin);
@@ -582,7 +591,7 @@ This connection becomes clearer when looking at a caller of \mintinline{text}{ge
 
   \draw[overlay, Stealth-Stealth, thick] (begin) -- (begin-mid) -- node[right] {lifetime \mintinline{text}{'a}} (end-mid) -- (end);
 \end{tikzpicture}
-This code will not compile. The borrow checker notices that \mintinline{text}{x} gets used in line 5, thus the lifetime \mintinline{text}{'a} must include \emph{at least} lines 2 to 5. The \mintinline{text}{get} function gets instantiated with this \mintinline{text}{'a} lifetime, and hence the lifetime of the \mintinline{text}{&v} borrow must also live at least until line 5. Thus, an immutable borrow exists during lines 3 and 4, so the mutation is not sound.
+This code will not compile. The borrow checker notices that \mintinline{text}{x} gets used in \cref*{line:lifetime:xuse}, thus the lifetime \mintinline{text}{'a} must include \emph{at least} \cref*{line:lifetime:x,line:lifetime:push1,line:lifetime:push2,line:lifetime:xuse}. The \mintinline{text}{get} function gets instantiated with this \mintinline{text}{'a} lifetime, and hence the lifetime of the \mintinline{text}{&v} borrow must also live at least until \cref*{line:lifetime:xuse}. Thus, an immutable borrow exists during \cref*{line:lifetime:push1,line:lifetime:push2}, so the mutation is not sound.
 
 % TODO not sure how and if this is relevant, requires some better source probably (Oxide/RustBelt)
 %
@@ -591,20 +600,20 @@ This code will not compile. The borrow checker notices that \mintinline{text}{x}
 \subsubsection{Non-Lexical Lifetimes} \label{sec:rust:nll}
 
 Prior to the 2018 edition of Rust (which was stabilized with Rust version 1.31~\cite{rust:2018-release}), the following code was not accepted by the borrow checker:
-\begin{minted}[linenos, mathescape]{rust}
+\begin{minted}[linenos]{rust}
   fn main() {
     let mut x = 5;
-    let y: &usize = &x;
-    x += 1;
+    let y: &usize = &x; |\codelinelabel{line:nll-mot:y}|
+    x += 1; |\codelinelabel{line:nll-mot:mut}|
   }
 \end{minted}
-Even though we mutate \mintinline{text}{x} while an immutable borrow (\mintinline{text}{y}) exists to the underlying value, this code is completely safe, because \mintinline{text}{y} is never used after the mutation. Yet, the code used to give an error due to this aliasing. This is because lifetimes followed lexical scopes. Line 3 creates an immutable borrow of \mintinline{text}{x}, its lifetime being bound to the scope of variable \mintinline{text}{y}. Because \mintinline{text}{y} stays in scope until the end of \mintinline{text}{main}, so does the immutable borrow.
+Even though we mutate \mintinline{text}{x} while an immutable borrow (\mintinline{text}{y}) exists to the underlying value, this code is completely safe, because \mintinline{text}{y} is never used after the mutation. Yet, the code used to give an error due to this aliasing. This is because lifetimes followed lexical scopes. \Cref*{line:nll-mot:y} creates an immutable borrow of \mintinline{text}{x}, its lifetime being bound to the scope of variable \mintinline{text}{y}. Because \mintinline{text}{y} stays in scope until the end of \mintinline{text}{main}, so does the immutable borrow.
 
 Static analysis is inherently conservative, and the Rust compiler will always have cases where it rejects safe programs because of technical limitations of its analysis. The issue presented here, however, was solved with Rust edition 2018 with the stabilization of \emph{non-lexical lifetimes} (NLL for short)~\cite{rust:nll-intro, rust:nll2}. Instead of calculating lifetimes based on lexical scopes, the borrow checker today uses \emph{liveness\footnote{A variable is considered live at a point in the program, if it might be used sometime after that point.} analysis} of variables to define more concise lifetimes.
 
-In a simplified view, a non-lexical lifetime is a set of lines\footnote{Or more accurately: a set of points in the control-flow graph.} where the lifetime is active, which is usually inferred by the set of lines where the corresponding variable is live. In the previous example, today's borrow checker will realize that \mintinline{text}{y} is not live after line 3, because it is never used. Hence, the lifetime of the borrow is completely confined to line 3. One could imagine the lifetime of that borrow is the set \(\{3\}\), representing only line 3. Not only that, but the \emph{type} of \mintinline{text}{y} will include that lifetime, as \mintinline{text}{y}'s type \emph{is} a borrow:
+In a simplified view, a non-lexical lifetime is a set of lines\footnote{Or more accurately: a set of points in the control-flow graph.} where the lifetime is active, which is usually inferred by the set of lines where the corresponding variable is live. In the previous example, today's borrow checker will realize that \mintinline{text}{y} is not live after \cref*{line:nll-mot:y}, because it is never used. Hence, the lifetime of the borrow is completely confined to \cref*{line:nll-mot:y}. One could imagine the lifetime of that borrow is the set \(\{3\}\), representing only \cref*{line:nll-mot:y}. Not only that, but the \emph{type} of \mintinline{text}{y} will include that lifetime, as \mintinline{text}{y}'s type \emph{is} a borrow:
 \mint{rust}{y: &{3} usize}
-The mutation in line 4 thus doesn't overlap with the lifetime of an immutable borrow any more.
+The mutation in \cref*{line:nll-mot:mut} thus doesn't overlap with the lifetime of an immutable borrow any more.
 
 % Another example that wouldn't compile previously is a function that takes a mutable borrow of a \mintinline{text}{HashMap}, checks if some key is in the map, does some processing on the underlying value if it is, and inserts a default value if it isn't~\cite{rust:nll-intro}:
 % \begin{minted}[linenos]{rust}
@@ -635,10 +644,10 @@ Even with NLL, there are still issues with today's borrow checker in practice. T
           map: &'a mut HashMap<usize, usize>,
           key: usize,
       ) -> &'a usize {
-          match map.get(&key) {
-              Some(v) => v,
+          match map.get(&key) { |\codelinelabel{line:get_or_insert:loan}|
+              Some(v) => v, |\codelinelabel{line:get_or_insert:v}|
               None => {
-                  map.insert(key, 420);
+                  map.insert(key, 420); |\codelinelabel{line:get_or_insert:mutation}|
                   &map[&key]
               }
           }
@@ -650,8 +659,8 @@ Even with NLL, there are still issues with today's borrow checker in practice. T
     \begin{minted}[linenos, firstnumber=last]{rust}
       fn main() {
           let mut map = HashMap::new();
-          let v = get_or_insert(&mut map, 69);
-          println!("{v}");
+          let v = get_or_insert(&mut map, 69); |\codelinelabel{line:caller:call}|
+          println!("{v}"); |\codelinelabel{line:caller:use}|
       }
     \end{minted}
     \caption{Caller} \label{lst:get_or_insert:caller}
@@ -659,36 +668,36 @@ Even with NLL, there are still issues with today's borrow checker in practice. T
   \caption{\mintinline{text}{get_or_insert} Lifetime Example} \label{lst:get_or_insert}
 \end{figure*}
 
-This function fails to compile on today's Rust, even with NLL. \mintinline{rust}{map.get(&key)} is short for \mintinline{rust}{HashMap::get(&*map, &key)}. In particular, line 5 creates an immutable borrow of \mintinline{text}{map}. This borrow has a lifetime, and with the view of NLL, that lifetime corresponds to a set of lines where the borrow may still be used. However, the value returned by the call to \mintinline{text}{get} might actually be returned to the caller, so the lifetime of this borrow is not confined to this function. The lifetime applied to the borrow of map is thus \mintinline{text}{'a}.
+This function fails to compile on today's Rust, even with NLL. \mintinline{rust}{map.get(&key)} is short for \mintinline{rust}{HashMap::get(&*map, &key)}. In particular, \cref*{line:get_or_insert:loan} creates an immutable borrow of \mintinline{text}{map}. This borrow has a lifetime, and with the view of NLL, that lifetime corresponds to a set of lines where the borrow may still be used. However, the value returned by the call to \mintinline{text}{get} might actually be returned to the caller, so the lifetime of this borrow is not confined to this function. The lifetime applied to the borrow of map is thus \mintinline{text}{'a}.
 
-\Cref{lst:get_or_insert:caller} shows a potential caller to the \mintinline{text}{get_or_insert} function. The lifetime that \mintinline{text}{get_or_insert} is instantiated with will be \(\{15, 16\}\), representing lines 15 and 16, and line 15 actually includes the \emph{entire} call of \mintinline{text}{get_or_insert}. In \cref{sec:rust:nll} we mentioned that a non-lexical lifetime can be seen as a set of lines. However, it can also be a named lifetime like \mintinline{text}{'a}. In this example, the named lifetime \mintinline{text}{'a} from \mintinline{text}{get_or_insert} is a lifetime that exists somewhere in the caller, because the function \emph{returns a value of lifetime \mintinline{text}{'a}}. The lifetime gets blown up to the entirety of the \mintinline{text}{get_or_insert} function, and will include the \mintinline{text}{None} branch. When we now try to mutate inside the \mintinline{text}{None} branch (by calling \mintinline{text}{insert}), the borrow checker sees overlapping mutable and immutable borrows and errors out.
+\Cref{lst:get_or_insert:caller} shows a potential caller to the \mintinline{text}{get_or_insert} function. The lifetime that \mintinline{text}{get_or_insert} is instantiated with will be \(\{15, 16\}\), representing \cref*{line:caller:call,line:caller:use}, and \cref*{line:caller:call} actually includes the \emph{entire} call of \mintinline{text}{get_or_insert}. In \cref{sec:rust:nll} we mentioned that a non-lexical lifetime can be seen as a set of lines. However, it can also be a named lifetime like \mintinline{text}{'a}. In this example, the named lifetime \mintinline{text}{'a} from \mintinline{text}{get_or_insert} is a lifetime that exists somewhere in the caller, because the function \emph{returns a value of lifetime \mintinline{text}{'a}}. The lifetime gets blown up to the entirety of the \mintinline{text}{get_or_insert} function, and will include the \mintinline{text}{None} branch. When we now try to mutate inside the \mintinline{text}{None} branch (by calling \mintinline{text}{insert}), the borrow checker sees overlapping mutable and immutable borrows and errors out.
 
 Polonius~\cite{rust:polonius-repo} is a new approach to lifetimes that tries to resolve this issue. With Polonius, a lifetime is not a set of lines where the borrow is live, but instead a set of \emph{loans} that the borrow might have come from, where a loan is the creation of a borrow. Analysing the simple example from \cref{sec:rust:nll}:
 \begin{minted}[linenos]{rust}
   fn main() {
     let mut x = 5;
-    let y: &usize = &x;
-    x += 1;
+    let y: &usize = &x; |\codelinelabel{line:nll-ex:y}|
+    x += 1; |\codelinelabel{line:nll-ex:mut}|
   }
 \end{minted}
-The lifetime of the borrow created at line 3 is now the set of loans that the borrow may have come from. There is only one loan that fits and that is the loan done at line 3. The lifetime of \mintinline{text}{y} is thus \(\{\texttt{L}3\}\) and \mintinline{text}{y}'s type is \mintinline{rust}{y: &{L3} usize}. We now say a loan \(L\) is \emph{live}, if \emph{some live variable} has \(L\) in its type~\cite{rust:polonius-talk}.
+The lifetime of the borrow created at \cref*{line:nll-ex:y} is now the set of loans that the borrow may have come from. There is only one loan that fits and that is the loan done at \cref*{line:nll-ex:y}. The lifetime of \mintinline{text}{y} is thus \(\{\texttt{L}3\}\) and \mintinline{text}{y}'s type is \mintinline{rust}{y: &{L3} usize}. We now say a loan \(L\) is \emph{live}, if \emph{some live variable} has \(L\) in its type~\cite{rust:polonius-talk}.
 
-Since \mintinline{text}{y} is never live, the loan from line 3 isn't either, hence the mutation on line 4 is valid. If we were to add a fifth line that is a use of \mintinline{text}{y}, \mintinline{text}{y} would become live, \(\texttt{L}3\) would become live, and the mutation on line 4 becomes invalid:
-\begin{minted}[linenos]{rust}
+Since \mintinline{text}{y} is never live, the loan from \cref*{line:nll-ex:y} isn't either, hence the mutation on \cref*{line:nll-ex:mut} is valid. If we were to add another line that is a use of \mintinline{text}{y}, \mintinline{text}{y} would become live, \(\texttt{L}3\) would become live, and the mutation on \cref*{line:nll-ex:mut} becomes invalid:
+\begin{minted}[linenos, mathescape]{rust}
   fn main() {
     let mut x = 5;
     let y: &usize = &x;
-    x += 1; // error, because y is live
+    x += 1; // error, because y is live $\codelinelabel{line:nll-ex2:mut}$
     println!("{y}");
   }
 \end{minted}
-Previously with NLL, the lifetime (and hence type) of \mintinline{text}{y} would've changed. With Polonius, the lifetime and type of \mintinline{text}{y} stays unchanged. However, the liveness of \mintinline{text}{y} is still larger than before, and hence also the liveness of the \(\texttt{L}3\) loan. Since \(\texttt{L}3\) is live at line 4, that mutation violates the rules of the \(\texttt{L}3\) loan, and the program is rejected by the borrow checker.
+Previously with NLL, the lifetime (and hence type) of \mintinline{text}{y} would've changed. With Polonius, the lifetime and type of \mintinline{text}{y} stays unchanged. However, the liveness of \mintinline{text}{y} is still larger than before, and hence also the liveness of the \(\texttt{L}3\) loan. Since \(\texttt{L}3\) is live at \cref*{line:nll-ex2:mut}, that mutation violates the rules of the \(\texttt{L}3\) loan, and the program is rejected by the borrow checker.
 
 Note the important distinction from NLL: With NLL, the liveness of the variable is encoded within its lifetime. With Polonius, the liveness of a variable is still required for the borrow checker, but the lifetimes themselves are decoupled entirely from liveness.
 
-The \mintinline{text}{get_on_insert} example from \cref{lst:get_or_insert:definition} now also poses no problem, and is the main motivation behind Polonius's development. The original issue was that the loan of \mintinline{text}{map} in line 5 got a lifetime that had to be set equal to \mintinline{text}{'a}, as that is the lifetime of the return value. \mintinline{text}{'a} is a named lifetime that spans the whole function. The lifetime of the loan from line 5 thus overlapped with the mutation from line 8.
+The \mintinline{text}{get_on_insert} example from \cref{lst:get_or_insert:definition} now also poses no problem, and is the main motivation behind Polonius's development. The original issue was that the loan of \mintinline{text}{map} in \cref*{line:get_or_insert:loan} got a lifetime that had to be set equal to \mintinline{text}{'a}, as that is the lifetime of the return value. \mintinline{text}{'a} is a named lifetime that spans the whole function. The lifetime of the loan from \cref*{line:get_or_insert:loan} thus overlapped with the mutation from \cref*{line:get_or_insert:mutation}.
 
-With Polonius, we still have a loan at line 5, which we will call \(\texttt{L}5\). \(\texttt{L}5\) is part of \mintinline{text}{v}'s type, however, v is \emph{not live} at line 8. Hence, the loan \(\texttt{L}5\) is \emph{also} not live at line 8. Remember, with Polonius, the borrow checker needs to check if some instruction violates the rules of a loan that is live at that instruction. Since \mintinline{text}{v} is not live at line 8, neither is \(\texttt{L}5\), and so there is no loan that is violated. Thus, the program gets accepted.
+With Polonius, we still have a loan at \cref*{line:get_or_insert:loan}, which we will call \(\texttt{L}5\). \(\texttt{L}5\) is part of \mintinline{text}{v}'s type, however, v is \emph{not live} at \cref*{line:get_or_insert:mutation}. Hence, the loan \(\texttt{L}5\) is \emph{also} not live at \cref*{line:get_or_insert:mutation}. Remember, with Polonius, the borrow checker needs to check if some instruction violates the rules of a loan that is live at that instruction. Since \mintinline{text}{v} is not live at \cref*{line:get_or_insert:mutation}, neither is \(\texttt{L}5\), and so there is no loan that is violated. Thus, the program gets accepted.
 
 It is important to note that, at the time of writing, Polonius is a current development and not integrated in today's stable Rust compiler. The authors of Polonius themselves state, that it is not ready for widespread use~\cite{rust:polonius-book}.
 
