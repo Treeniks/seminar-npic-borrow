@@ -337,8 +337,8 @@ The particularly interesting application is in contexts of manual memory managem
 \(*\tau\) represents a pointer to \(\tau\), and \(()\) represents the unit type. Interpreting these functions in an intuitionistic manner, we can easily produce a use after free bug:\footnote{\mintinline{text}{let y = t; s} is short for \((\lambda y\ldotp s)\ t\)}
 \begin{minted}{text}
   let x = alloc v;
-  free x;
-  let w = load x // accessing x after free
+  let _ = free x;
+  load x // accessing x after free
 \end{minted}
 
 Contraction allows us to copy the x and use it as many times as we want. Similarly, nothing forces us to actually free the allocation thanks to Weakening. The above code type checks just fine.
