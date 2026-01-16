@@ -75,7 +75,7 @@ The two most prominent developments in the space of Rust lifetimes have been \em
 
 Type systems and mathematical logic have unintuitively deep ties. For example, the notion of type inference in modern languages is based mostly on Hindley-Milner type systems, its name originating from the fact that Hindley (a logician) and Milner (a computer scientist) found the same system independently of one another~\cite{hindley, milner}.
 
-While we will not look at type inference in this work, and will instead focus on type systems in general, it gives an early intuition that these topics are interlinked. So to talk about the theory of types, we must first have a peek at the theory of logic.
+While we will not look at type inference in this work, and will instead focus on type systems in general, it gives an early intuition that these topics are interlinked.
 
 \subsection{Intuitionistic Logic} \label{sec:intuitionistic:logic}
 
@@ -134,20 +134,20 @@ Since we are mostly concerned with general concepts, we will only view a reduced
   \caption{Intuitionistic Logic -- Natural Deduction} \label{fig:intuitionistic:logic:nd}
 \end{figure*}
 
-We write \(\Gamma \vdash A\) (read \enquote{\(\Gamma\) entails \(A\)}), in which \(\Gamma\) is some set of propositions (which we will call context) and \(A\) is a single proposition, to convey that, given that the propositions in \(\Gamma\) are true, \(A\) is also true. To do logical reasoning, we need rules for such reasoning, the likes of which are seen in \cref{fig:intuitionistic:logic:nd}.
+We write \(\Gamma \vdash A\) (read \enquote{\(\Gamma\) entails \(A\)}), in which \(\Gamma\) is some set of propositions (which we will call context) and \(A\) is a single proposition, to convey that, given that the propositions in \(\Gamma\) are true, \(A\) is also true. To do logical reasoning, we need rules for such reasoning, for which we introduce a system that is loosely based on Natural Deduction, seen in \cref{fig:intuitionistic:logic:nd}.
 
-We have the \emph{axiom} Id, the three \emph{structural} rules Exchange, Contraction and Weakening, and \emph{logical} rules for \emph{implications} (\(\rightarrow\)-I and \(\rightarrow\)-E) and \emph{conjunctives} (\(\land\)-I and \(\land\)-E). Note also that many other equivalent formulations exist, including ones that don't require explicit structural rules, but the one presented here makes the transition to linear types easier.
+We have the \emph{axiom} Id, the three \emph{structural} rules Exchange, Contraction and Weakening, and \emph{logical} rules for \emph{implications} (\(\rightarrow\)-I and \(\rightarrow\)-E) and \emph{conjunctives} (\(\land\)-I and \(\land\)-E). Note that explicit structurual rules are unusual for Natural Deduction, as they are typically absorbed into the logical rules, but explicit ones will make the transition to linear types simpler.
 
-A rule like these describes a step of logical reasoning. The core idea is that, when the things above the line hold, the things below the line hold as well. Hence, there are two ways to interpret a rule:
+A rule describes a step of logical reasoning. The core idea is that, when the things above the line hold, the things below the line hold as well. Hence, there are two ways to interpret a rule:
 \begin{description}
   \item[Top to bottom]
     If I know the thing at the top holds, I can deduce that the thing at the bottom holds
   \item[Bottom to top]
     If I want to show the thing on the bottom, I first need to show the thing at the top
 \end{description}
-The second interpretation becomes particularly relevant when writing proofs. One would start with the statement one wants to proof, and by applying the rules of natural deduction from bottom to top, it becomes clear what is needed to proof first. The first interpretation on the other hand is how we normally convey proofs to others. One starts with the axioms or known facts, and keeps deriving new facts until the goal is reached.
+The second interpretation becomes particularly relevant when writing proofs. One would start with the statement one wants to prove, and by applying the rules of natural deduction from bottom to top, it becomes clear what needs to be proved first. The first interpretation on the other hand is how we normally convey proofs to others. One starts with the axioms or known facts, and keeps deriving new facts until the goal is reached.
 
-Actual proofs are usually written as proof trees, where each branch is an instantiation of a rule and leaves are axioms. For example, \cref{fig:intuitionistic:logic:proof} shows the tree that proofs \(A \rightarrow B, A \vdash A \land B\).
+Actual proofs are usually written as proof trees, where each branch is an instantiation of a rule and leaves are axioms. For example, \cref{fig:intuitionistic:logic:proof} shows the tree that proves \(A \rightarrow B, A \vdash A \land B\).
 
 \begin{figure}[H]
   \begin{prooftree}
@@ -207,7 +207,7 @@ Of particular interest for us are the Contraction and Weakening rules. Contracti
 
 We will now move away from logic and into the theory of computation and types. To talk about types we first need a programming language, for which we will use a small, limited and typed lambda calculus, the grammar of which can be seen in \cref{fig:intuitionistic:types:grammar}. We write \(t : \alpha\) to denote that term \(t\) has type \(\alpha\).
 
-Similarly to when we defined natural deduction rules to define the notion of logical reasoning, here we will define typing judgement rules which outline what types certain terms have. We write \(\Gamma \vdash t : \tau\) to say that, under the typing context \(\Gamma\), the term \(t\) has type \(\tau\) (and hence \(t\) is well typed). Typing contexts are a list of assignments from variables to types \(x_0 : \tau_0, x_1 : \tau_1 \dots x_n : \tau_n\). The judgement rules can be seen in \cref{fig:intuitionistic:types:judgements}.\footnote{The notation \(u[x/y,x/z]\) means to replace all occurrences of \(y\) and \(z\) in \(u\) by \(x\).}
+Similarly to when we defined natural deduction rules to define the notion of logical reasoning, here we will define typing judgement rules which outline what types certain terms have. We write \(\Gamma \vdash t : \tau\) to say that, under the typing context \(\Gamma\), the term \(t\) has type \(\tau\) (and hence \(t\) is well typed). Typing contexts are a list of assignments from variables to types \(x_0 : \tau_0, x_1 : \tau_1 \dots x_n : \tau_n\). The judgement rules can be seen in \cref{fig:intuitionistic:types:judgements}.
 
 \begin{figure*}
   \begin{prooftree}
@@ -252,6 +252,7 @@ Similarly to when we defined natural deduction rules to define the notion of log
     \RightLabel{\(\times\)-E}
     \BinaryInfC{\(\Gamma, \Delta \vdash \text{ let } (x, y) = t; w : \omega\)}
   \end{prooftree}
+  {\small The notation \(u[x/y,x/z]\) means to replace all occurrences of \(y\) and \(z\) in \(u\) by \(x\).}
   \caption{Intuitionistic Types – Judgement Rules} \label{fig:intuitionistic:types:judgements}
 \end{figure*}
 
@@ -288,19 +289,19 @@ As before, we can use these judgements to type check terms (under typing context
 
 \subsubsection{Curry-Howard correspondence} \label{sec:intuitionistic:curry-howard}
 
-Astute readers, or those who have seen the Curry-Howard correspondence before, will have noticed that the judgement rules in \cref{fig:intuitionistic:types:judgements} and the proof rules in \cref{fig:intuitionistic:logic:nd} are effectively identical. Similarly, the example judgement presented in \cref{fig:intuitionistic:types:proof} and the example proof in \cref{fig:intuitionistic:logic:proof} are also identical.
+One may notice that the judgement rules in \cref{fig:intuitionistic:types:judgements} and the proof rules in \cref{fig:intuitionistic:logic:nd} are effectively identical. Similarly, the example judgement presented in \cref{fig:intuitionistic:types:proof} and the example proof in \cref{fig:intuitionistic:logic:proof} are also identical. This is the discovery made by Curry and Howard~\cite{curry-combinatory-logic, howard-formalae}: propositions are types, and terms are proofs. The conjunction (\(A \land B\)) for propositions are pairs (\(\tau \times \pi\)) in the world of terms and types, while implications (\(A \rightarrow B\)) are functions (\(\tau \rightarrow \pi\)).
 
-This is the discovery made by Curry and Howard~\cite{curry-combinatory-logic, howard-formalae}: propositions are types, and terms are proofs. The conjunction (\(A \land B\)) for propositions are pairs (\(\tau \times \pi\)) in the world of terms and types and implications (\(A \rightarrow B\)) are functions (\(\tau \rightarrow \pi\)).
-
-One rather magical point is that terms uniquely represent a proof tree (modulo certain commutative properties~\cite{wadler-linear-taste}). This correspondence isn't quite as obvious as the others, however, the example we used so far can give an intuition on why this is true: The term \((x, f\ x)\) gives significant insight into what a proof of \[A \rightarrow B, A \vdash A \land B\] needs to do. The fact that the variable \(x\) appears twice in the term means there must be a use of the \emph{Contraction} rule, the fact the term is a tuple definition means there must be a use of the \(\land\)\nobreakdash-I rule, and the existence of the function application \(f\ x\) means the proof contains a use of the \(\rightarrow\)\nobreakdash-E rule. The full connection is a bit more involved, so we will leave it at this intuition.
+One remarkable point is that terms uniquely represent a proof tree (modulo certain commutative properties~\cite{wadler-linear-taste}). This correspondence isn't quite as obvious as the others, however, the example we used so far can give an intuition on why this is true: The term \((x, f\ x)\) gives significant insight into what a proof of \[A \rightarrow B, A \vdash A \land B\] needs to do. The fact that the variable \(x\) appears twice in the term means there must be a use of the \emph{Contraction} rule, the fact the term is a tuple definition means there must be a use of the \(\land\)\nobreakdash-I rule, and the existence of the function application \(f\ x\) means the proof contains a use of the \(\rightarrow\)\nobreakdash-E rule. The full connection is a bit more involved, so we will leave it at this intuition.
 
 We mentioned how intuitionistic logic is a system of constructive proofs in \cref{sec:intuitionistic:logic}. With the Curry-Howard correspondence, this idea becomes even more concrete: In order to prove a proposition, we must be able to construct a term of the corresponding type. Such a term is a program that, when executed, constructs a value of this type.
 
 \subsection{Linear Logic} \label{sec:linear:logic}
 
-Just like with intuitionistic types, before we can jump into linear types, we must first have a look at linear logic. So we will now leave type systems again and take a step back into pure logic, before using the same Curry-Howard isomorphism from \cref{sec:intuitionistic:curry-howard}, to translate linear logic into linear types.
+We will shortly step back from type systems into logic again to introduce linear logic, before using the same Curry-Howard isomorphism from \cref{sec:intuitionistic:curry-howard}, to translate linear logic into linear types.
 
-Linear logic is the idea that not all truths are free. With intuitionistic logic, we can duplicate and forget truths as much as we want. In a mathematical sense, if one proves the \emph{Maximum Modulus Theorem}, that theorem can be further used to proof \emph{Schwarz's Lemma} as well as the \emph{Phragmén-Lindelöf Theorem}~\cite{conway-complex}. We don't somehow lose access to the \emph{Maximum Modulus Theorem} after proving \emph{Schwarz's Lemma}. However, duplication is not free in the real world. If \(A\) means \enquote{I have 60 rupees}, \(B\) means \enquote{I can buy 30 arrows} (that cost 60 rupees total) and \(C\) means \enquote{I can buy a Deku Shield} (which costs 40 rupees), then the following shows a proof of how 60 rupees can buy both in intuitionistic logic by duplicating \(A\):
+Linear logic is the idea that not all truths are free. With intuitionistic logic, we can duplicate and forget truths as much as we want. In a mathematical sense, if one proves the \emph{Maximum Modulus Theorem}, that theorem can be further used to proof \emph{Schwarz's Lemma} as well as the \emph{Phragmén-Lindelöf Theorem}~\cite{conway-complex}. We don't lose access to the \emph{Maximum Modulus Theorem} after proving \emph{Schwarz's Lemma}.
+
+However, duplication is not free in the real world. If \(A\) means \enquote{I have 60 rupees}, \(B\) means \enquote{I can buy 30 arrows} (that cost 60 rupees total) and \(C\) means \enquote{I can buy a Deku Shield} (which costs 40 rupees), then the following shows a proof of how 60 rupees can buy both in intuitionistic logic by duplicating \(A\):
 \begin{center}
   \begin{prooftree}
     \AxiomC{\(A \vdash B\)}
@@ -313,18 +314,20 @@ Linear logic is the idea that not all truths are free. With intuitionistic logic
 \end{center}
 And yet, 60 rupees aren't actually enough to buy both 30 arrows \emph{and} a Deku Shield.
 
-The issue is with the Contraction and Weakening rules, both of which linear logic tries to limit. One could just carelessly remove Contraction and Weakening and call it a day. However, the goal is not just to remove these rules, but also to not lose expressivity. Unfortunately, this is where the details get a bit messy, thus we will only give an overview.
+The issue is with the Contraction and Weakening rules, both of which linear logic tries to limit. One could just remove Contraction and Weakening outright, however that would lose us expressivity. Unfortunately, this is where the details get a bit messy, thus we will only give an overview.
 
-The core idea is to split propositions into two groups: linear and intuitionistic. Intuitionistic propositions, denoted just as before, work as we know and allow for Contraction and Weakening, while linear propositions, denoted \(\langle A\rangle\), allow everything but Contraction and Weakening. The notation for the logical connectives also changes, and their meaning may now differ.
+The core idea is to split assumptions into two groups: linear and intuitionistic. Intuitionistic assumptions, denoted just as before, work as we know and allow for Contraction and Weakening, while linear assumptions, denoted \(\langle A\rangle\), do not allow Contraction and Weakening.
 
-\(A \rightarrow B\) becomes \(A \multimap B\) (called \enquote{lolli}) and whereas before we could freely convert \(A\) into \(B\), if \(A\) is linear the operation completely consumes it. \(A \land B\) becomes \(A \otimes B\) (called \enquote{tensor}) and while there is not a big difference in meaning, there are other formulations of conjunctives that are equivalent in intuitionistic logic, but have a profoundly different meaning in linear logic~\cite{wadler-linear-taste}.
+The notation and meaning of the logical connectives also changes. \(A \rightarrow B\) becomes \(A \multimap B\) (called \enquote{lolli}) and whereas before we could freely convert \(A\) into \(B\), the lolli instead consumes the \(A\). \(A \land B\) becomes \(A \otimes B\) (called \enquote{tensor}) and requires that both sub-propositions be used, meaning \(A \otimes B \vdash A\) is not provable.
+
+Similarly, for our example proof from \cref{fig:intuitionistic:logic:proof}, if we make the assumption \(A\) linear, we get: \[A \multimap B, \langle A\rangle \vdash A \otimes B\] But this isn't provable any more, as we would need to duplicate \(\langle A\rangle\).
+
+\citet{wadler-linear-taste} also explores a second alternative definition of conjunction, which happens to be equivalent to our definition in intuitionistic logic, but gets a profoundly different meaning once it is translated into linear logic.
 % TODO maybe write a footnote with more detail, or do an appendix with a full explanation?
-
-Note that for our example proof from \cref{fig:intuitionistic:logic:proof}, if we make the assumption \(A\) linear, we get: \[A \multimap B, \langle A\rangle \vdash A \otimes B\] But this isn't provable any more, as we would need to duplicate \(\langle A\rangle\).
 
 \subsection{Linear Types} \label{sec:linear:types}
 
-Applying the Curry-Howard correspondence to linear logic, we get a particularly useful type-theoretic concept: Non-duplicatable and non-forgettable values. Having a look at the judgement from \cref{fig:intuitionistic:types:proof} once again: \[f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\] The thing of interest is the duplication of \(x\). In real world programming, \(x\) could be anything, including a highly limited resource. If \(x\) is a simple integer, it may be no problem to copy it, but if \(x\) is a large array, copying may be an unacceptable performance hit. Even worse, if \(x\) represents some resource like a file, duplication may be catastrophic.
+Applying the Curry-Howard correspondence to linear logic, we get a particularly useful type-theoretic concept: Non-duplicatable and non-forgettable values. Looking at the judgement from \cref{fig:intuitionistic:types:proof} once again: \[f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\] The thing of interest is the duplication of \(x\). In real world programming, \(x\) could be anything, including a highly limited resource. If \(x\) is a simple integer, it may be no problem to copy it, but if \(x\) is a large array, copying may be an unacceptable performance hit. Even worse, if \(x\) represents some resource like a file, duplication may be catastrophic.
 
 The particularly interesting application is in contexts of manual memory management. If we define the following functions inspired by \citet{from-linearity-to-borrowing} for allocating and freeing memory, we may be susceptible to various memory related bugs:
 
@@ -350,16 +353,16 @@ However, if we change the type definitions to use linear types:
   &\vdash \texttt{free} : \langle *\tau\rangle \multimap () &
   &\vdash \texttt{store} : \langle *\tau\rangle \multimap \tau \multimap ()
 \end{align*}
-The previous use after free code does \emph{not} type check any more, and a \(\langle *\tau\rangle\) \emph{uniquely} owns its memory. However, there is another problem, as these definitions are practically useless. The following code \emph{also} would not type check, because \mintinline{text}{x} \emph{still} occurs twice:
+The previous use after free code does \emph{not} type check any more, and a \(\langle *\tau\rangle\) \emph{uniquely} owns its memory. However, there is another problem, as these definitions are practically useless. The following code \emph{also} would not type check, because \mintinline{text}{x} is \emph{still} used twice:
 \begin{minted}{text}
   let x = alloc v;
   let w = load x; // x is consumed here
   free x // does not exist anymore
 \end{minted}
 
-\subsubsection{Capability Passing Style} \label{sec:theory:capability-passing-style}
+\subsubsection{Capability-Passing Style} \label{sec:theory:capability-passing-style}
 
-To fix this issue, the usual solution is using different definitions of our functions utilizing something called \emph{capability passing style}. In this style, functions that do something with a linear value without consuming them need to return the value back to the caller. That slightly changes the definitions of our memory management functions once again:
+To fix this issue, the usual solution is using different definitions of our functions utilizing something called \emph{capability-passing style}. In this style, functions that do something with a linear value without consuming them need to return the value back to the caller. That slightly changes the definitions of our memory management functions once again:
 \begin{align*}
   &\vdash \texttt{alloc} : \tau \multimap \langle *\tau\rangle &
   &\vdash \texttt{load} : \langle *\tau\rangle \multimap \langle *\tau\rangle \otimes \tau \\
@@ -373,12 +376,9 @@ Now the code from before can be written like so:
   free x1 // new x1 so fine
 \end{minted}
 
-The \mintinline{text}{free} function still fully consumes the resource and \(\langle *\tau\rangle\) still \emph{uniquely} owns its memory, yet \mintinline{text}{load} and \mintinline{text}{store} can be reasonably used. There are two issues with this approach however:
-\begin{enumerate}
-  \item This style of programming is not very ergonomic.
-  \item Nothing prevents the provider of the function from returning completely new unrelated objects.
-\end{enumerate}
-We will discuss how to fix these issues in \cref{sec:rust:borrowing}.
+The \mintinline{text}{free} function still fully consumes the resource and \(\langle *\tau\rangle\) still uniquely owns its memory, yet \mintinline{text}{load} and \mintinline{text}{store} can now be used.
+
+There are two issues with this approach however. Firstly, this style of programming is not very ergonomic, and secondly, nothing prevents the provider of the function from returning completely new unrelated objects. We will discuss how to fix these issues in \cref{sec:rust:borrowing}.
 
 It is worth noting again that this is only a simplified view of the topic. \citet{wadler-linear-taste} e.g. goes into further detail.
 
@@ -388,11 +388,11 @@ In this section, we will explore how Rust uses and extends the ideas of linear t
 
 Many programming languages implement the ideas behind linear types in some ways. And while there are also languages explicitly implementing linear types~\cite{austral-intro, par-docs}, Rust is probably the most well known application of the concept.
 
-Although that isn't quite accurate. Rust does in fact \emph{not} prevent Weakening. In particular, Rust can create memory leaks, and it is explicitly supported with \mintinline{rust}{std::mem::forget} (although this did cause issues in the past~\cite{rust:poop}). Instead, it is more accurate to categorize Rust's type system as \emph{affine}. Affine logic is linear logic plus Weakening. Alternatively, it is a logic without Contraction.
+Although that isn't quite accurate. Rust does in fact \emph{not} completely prevent Weakening. In particular, Rust can create memory leaks, and it is explicitly supported with \mintinline{rust}{std::mem::forget} (although this did cause issues in the past~\cite{rust:poop}). Instead, it may be more accurate to categorize Rust's type system as \emph{affine}. Affine logic is linear logic plus Weakening, or in other words, it is intuitionistic logic without Contraction. But Rust still employs some features that are inspired by the idea of disallowing Weakening.
 
 \subsection{Rust's Ownership Model} \label{sec:rust:ownership}
 
-We mentioned in \cref{sec:linear:logic} that linear logic doesn't just outright remove intuitionistic propositions, but instead just groups propositions into intuitionistic or linear. This categorization of propositions shows itself in Rust's \Copy{} trait.\footnote{Traits can be viewed as Rust's type classes.}
+We mentioned in \cref{sec:linear:logic} that linear logic doesn't just outright remove intuitionistic assumptions, but instead just groups assumptions into intuitionistic or linear. This categorization of assumptions shows itself in Rust's \Copy{} trait.\footnote{In a simplified view, traits can be viewed as Rust's type classes.}
 
 \subsubsection{Non-\Copy{} Types}
 
@@ -405,11 +405,11 @@ Types that don't implement \Copy{} act like our linear types. To improve ergonom
 \end{minted}
 \Cref*{line:non-copy:v} defines the variable \mintinline{text}{v} that is the unique owner of the underlying vector. \Cref*{line:non-copy:w} \emph{moves} the value to \mintinline{text}{w}. Rust knows that the ownership of the underlying vector has moved from \mintinline{text}{v} to \mintinline{text}{w}, hence \mintinline{text}{v} cannot be used after \cref*{line:non-copy:w}. \Cref*{line:non-copy:e} causes an error.
 
-Note that this code does not use Weakening. Similar to C++, Rust implicitly calls a destructor at the end of a variable's scope. In Rust terminology, this destructor function is called \mintinline{text}{drop}, and \mintinline{text}{std::vec::Vec}'s \mintinline{text}{drop} implementation would free whatever heap memory was allocated for the vector.
+Note that this code does not need Weakening to type. Similar to C++, Rust implicitly calls a destructor at the end of a variable's scope. In Rust terminology, this destructor function is called \mintinline{text}{drop}, and \mintinline{text}{std::vec::Vec}'s \mintinline{text}{drop} implementation would free whatever heap memory was allocated for the vector.
 
 \subsubsection{\Copy{} Types}
 
-Types implementing the \Copy{} marker trait represent values stored on the stack, which can be copied cheaply~\cite[Chapter 4.1]{rust:book}. While the type system doesn't actually prevent us from implementing \Copy{} on any type we want, it does prevent us from implementing both \Copy{} \emph{and} \mintinline{text}{Drop}~\cite{rust:ops-drop} on the same type.
+Types implementing the \Copy{} marker trait represent values stored on the stack, which can be copied cheaply~\cite[Chapter 4.1]{rust:book}. While the type system doesn't actually prevent us from implementing \Copy{} on any type we want, it does prevent us from implementing both \Copy{} \emph{and} \mintinline{text}{Drop} on the same type~\cite{rust:ops-drop}.
 
 If we replace the vector with an integer in the above code, the Rust compiler will accept it:
 \begin{minted}[linenos]{rust}
@@ -419,7 +419,7 @@ If we replace the vector with an integer in the above code, the Rust compiler wi
   w += 2;
 \end{minted}
 
-\subsection{Capability Passing Style in Rust} \label{sec:rust:capability-passing-style}
+\subsection{Capability-Passing Style in Rust} \label{sec:rust:capability-passing-style}
 
 \begin{figure*}
   \begin{subfigure}{0.46\textwidth}
@@ -442,7 +442,7 @@ If we replace the vector with an integer in the above code, the Rust compiler wi
       let (mut v1, len) = get_len(v0);
       v1.push(1); // fine
     \end{minted}
-    \caption{Capability-Passing-Style} \label{lst:get_len:capability-passing-style}
+    \caption{Capability-Passing Style} \label{lst:get_len:capability-passing-style}
   \end{subfigure}
 
   \vspace{1em}
@@ -459,7 +459,7 @@ If we replace the vector with an integer in the above code, the Rust compiler wi
   \caption{\mintinline{text}{get_len} Example} \label{lst:get_len}
 \end{figure*}
 
-\Cref{lst:get_len:naive} show how naively applying the rules of ownership results in a similar problem described in \cref{sec:theory:capability-passing-style}. Functions whose arguments are non-\Copy{} types take ownership of those values. If one wants to use a value \emph{after} passing it to a function, the function must return the value, as seen in \cref{lst:get_len:capability-passing-style}.
+\Cref{lst:get_len:naive} shows how naively applying the rules of ownership results in a similar problem described in \cref{sec:theory:capability-passing-style}. Functions whose arguments are non-\Copy{} take ownership of those values. If one wants to use a value \emph{after} passing it to a function, the function must return the value, as seen in \cref{lst:get_len:capability-passing-style}.
 
 As mentioned in \cref{sec:theory:capability-passing-style}, not only is this not ergonomic, the signature of this function is not very expressive. From \mintinline{text}{get_len}'s type signature alone, it is not clear that the returned vector is the same vector as the input. Nothing prevents \mintinline{text}{get_len} from dropping the provided vector and returning a newly allocated one. The following section describes Rust's approach to this problem.
 
