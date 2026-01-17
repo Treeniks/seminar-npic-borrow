@@ -316,9 +316,9 @@ And yet, 60 rupees aren't actually enough to buy both 30 arrows \emph{and} a Dek
 
 The issue is with the Contraction and Weakening rules, both of which linear logic tries to limit. One could just remove Contraction and Weakening outright, however that would lose us expressivity. Unfortunately, this is where the details get a bit messy, thus we will only give an overview.
 
-The core idea is to split assumptions into two groups: linear and intuitionistic. Intuitionistic assumptions, denoted just as before, work as we know and allow for Contraction and Weakening, while linear assumptions, denoted \(\langle A\rangle\), do not allow Contraction and Weakening.
+The core idea is to split propositions into two groups: linear and intuitionistic. Intuitionistic propositions, denoted just as before, work as we know and allow for Contraction and Weakening, while linear propositions, denoted \(\langle A\rangle\), do not allow Contraction and Weakening.
 
-The notation and meaning of the logical connectives also changes. \(A \rightarrow B\) becomes \(A \multimap B\) (called \enquote{lolli}) and whereas before we could freely convert \(A\) into \(B\), the lolli instead consumes the \(A\). \(A \land B\) becomes \(A \otimes B\) (called \enquote{tensor}) and requires that both sub-propositions be used, meaning \(A \otimes B \vdash A\) is not provable.
+The notation and meaning of the logical connectives also changes. \(A \rightarrow B\) becomes \(A \multimap B\) (called \enquote{lolli}) and whereas before we could freely convert \(A\) into \(B\), the lolli consumes the \(A\). \(A \land B\) becomes \(A \otimes B\) (called \enquote{tensor}) and requires that both sub-propositions be used, meaning \(A \otimes B \vdash A\) is not provable.
 
 Similarly, for our example proof from \cref{fig:intuitionistic:logic:proof}, if we make the assumption \(A\) linear, we get: \[A \multimap B, \langle A\rangle \vdash A \otimes B\] But this isn't provable any more, as we would need to duplicate \(\langle A\rangle\).
 
@@ -392,7 +392,7 @@ Although that isn't quite accurate. Rust does in fact \emph{not} completely prev
 
 \subsection{Rust's Ownership Model} \label{sec:rust:ownership}
 
-We mentioned in \cref{sec:linear:logic} that linear logic doesn't just outright remove intuitionistic assumptions, but instead just groups assumptions into intuitionistic or linear. This categorization of assumptions shows itself in Rust's \Copy{} trait.\footnote{In a simplified view, traits can be viewed as Rust's type classes.}
+We mentioned in \cref{sec:linear:logic} that linear logic doesn't just outright remove intuitionistic propositions, but instead just groups propositions into intuitionistic or linear. This categorization of propositions shows itself in Rust's \Copy{} trait.\footnote{In a simplified view, traits can be viewed as Rust's type classes.}
 
 \subsubsection{Non-\Copy{} Types}
 
