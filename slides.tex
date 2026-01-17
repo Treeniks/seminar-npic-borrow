@@ -5,6 +5,13 @@
 \usepackage{tikz}
 \usepackage[style=alphabetic,giveninits=true,terseinits=true]{biblatex}
 
+\usepackage{minted}
+\setminted{autogobble, numbersep=0.5em, escapeinside=||}
+\usemintedstyle{friendly}
+
+\usepackage{tcolorbox}
+\tcbuselibrary{minted}
+
 \usepackage{bussproofs}
 \usepackage{simplebnf}
 
@@ -64,33 +71,54 @@
   %\vfill\llap{\usebeamerfont{footline}\usebeamercolor[fg]{footline}\insertframenumber\hskip3pt}\vskip3pt%
 }
 
+\newtcblisting{lst}[2][]{
+  colframe = tumblue!20!white,
+  colback = tumblue!5!white,
+  boxsep = 2pt,
+  boxrule = 1pt,
+  arc = 10pt,
+  listing only, minted language = #2, #1
+}
+
 \title{Linear Types and a Lifetime of Borrows}
 \author{Thomas Lindae}
 \institute{School of Computation, Information, and Technology\\Technical University of Munich}
 \date{2026-01-19}
 
-\begin{document}
+% \setbeamertemplate{section page}{
+%   \centering
+%   \begin{beamercolorbox}[sep=12pt,center]{part title}
+%     \usebeamerfont{section title}\insertsection\par
+%   \end{beamercolorbox}
+% }
+% \AtBeginSection[]{\frame{\sectionpage}}
 
-% \begin{frame}{Organization}
-% \begin{itemize}
-%   % Don't forget to adjust the \addbibresource above.
-%   \item Citation example, if you really need it\footfullcite{intro:rust-in-linux}
-% \end{itemize}
-% \end{frame}
+\begin{document}
 
 \begin{frame}
     \titlepage
 \end{frame}
 
-\begin{frame}{A Simple Logic}
+\begin{frame}{Overview}
+  \tableofcontents
+\end{frame}
+
+\section{Theory}
+
+\subsection{Intuitionistic Logic}
+
+\begin{frame}{Intuitionistic Logic}
   \centering
   \begin{bnf}
     \(A, B, C\) : Proposition ::= \(X\) : Variable | \(A \rightarrow B\) : Implication | \(A \land B\) : Conjunction
   \end{bnf}
-\end{frame}
 
-\begin{frame}{Intuitionistic Logic -- Natural Deduction}
-  \centering
+  \pause
+
+  \vspace{3mm}
+
+  \hrule
+
   \begin{prooftree}
     \AxiomC{}
     \RightLabel{Id}
@@ -135,7 +163,7 @@
   \end{prooftree}
 \end{frame}
 
-\begin{frame}{Proof of \(A \rightarrow B, A \vdash A \land B\)}
+\begin{frame}{Intuitionistic Logic}{Proof of \(A \rightarrow B, A \vdash A \land B\)}
   \centering
   \begin{prooftree}
     \AxiomC{}
@@ -164,7 +192,66 @@
   \end{prooftree}
 \end{frame}
 
-\begin{frame}{Grammar of Typed Lambda Calculus}
+\subsection{Linear Logic}
+
+\begin{frame}{Linear Logic}
+  \centering
+
+  \begin{prooftree}
+    \AxiomC{\(\Gamma, A, A \vdash B\)}
+    \RightLabel{Contraction}
+    \UnaryInfC{\(\Gamma, A \vdash B\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma \vdash B\)}
+    \RightLabel{Weakening}
+    \UnaryInfC{\(\Gamma, A \vdash B\)}
+  \end{prooftree}
+
+  \pause
+
+  \hrule
+
+  \begin{columns}
+    \begin{column}{0.4\textwidth}
+      \begin{itemize}
+        \item \(A = \text{"I have 60 rupees"}\)
+          \pause
+        \item \(B = \text{"I can buy 30 arrows"}\)
+          \pause
+        \item \(C = \text{"I can buy a Deku Shield"}\)
+      \end{itemize}
+    \end{column}
+    \pause
+    \begin{column}{0.5\textwidth}
+      \begin{tblr}{
+          colspec = {X[1,c,h] X[2,c,m] X[2,c,m]},
+          vline{3} = {2,3}{solid},
+        }
+        \SetCell[c=2]{c} \textbf{Shop} & & Price (Rupees) \\
+        \includegraphics[width=2.5em]{OOT-arrows} & Arrows (30) & 60 \\
+        \hline
+        \includegraphics[width=2.5em]{OOT-shield} & Deku Shield & 40 \\
+      \end{tblr}
+    \end{column}
+  \end{columns}
+
+  \pause
+
+  \hrule
+
+  \begin{prooftree}
+    \AxiomC{\(A \vdash B\)}
+    \AxiomC{\(A \vdash C\)}
+    \RightLabel{\(\land\)-I}
+    \BinaryInfC{\(A, A \vdash B \land C\)}
+    \RightLabel{Contraction}
+    \UnaryInfC{\(A \vdash B \land C\)}
+  \end{prooftree}
+\end{frame}
+
+\subsection{Intuitionistic Types}
+
+\begin{frame}{Intuitionistic Types}{Grammar of Typed Lambda Calculus}
   \centering
   \begin{bnf}
     \(s,t,u,v,w\) ::= \(x\) : Variable
@@ -181,7 +268,7 @@
   \end{bnf}
 \end{frame}
 
-\begin{frame}{Intuitionistic Types -- Judgement Rules}
+\begin{frame}{Intuitionistic Types}{Intuitionistic Types -- Judgement Rules}
   \centering
   \begin{prooftree}
     \AxiomC{}
@@ -229,7 +316,7 @@
   {\small The notation \(u[x/y,x/z]\) means to replace all occurrences of \(y\) and \(z\) in \(u\) by \(x\).}
 \end{frame}
 
-\begin{frame}{Intuitionistic Logic vs Intuitionistic Types}
+\begin{frame}{Intuitionistic Types}{Intuitionistic Logic vs Intuitionistic Types}
   \begin{columns}
     \begin{column}{0.5\textwidth}
       \centering
@@ -259,7 +346,7 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}{Proof of \(f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\)}
+\begin{frame}{Intuitionistic Types}{Proof of \(f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\)}
   \centering
   \begin{prooftree}
     \AxiomC{}
@@ -318,59 +405,86 @@
   \end{prooftree}
 \end{frame}
 
-\begin{frame}{Linear Logic}
+\subsection{Linear Types}
+
+\begin{frame}[fragile]{Linear Types}{Allocation of Memory -- Use After Free}
   \centering
 
-  \begin{prooftree}
-    \AxiomC{\(\Gamma, A, A \vdash B\)}
-    \RightLabel{Contraction}
-    \UnaryInfC{\(\Gamma, A \vdash B\)}
-    \DisplayProof\qquad
-    \AxiomC{\(\Gamma \vdash B\)}
-    \RightLabel{Weakening}
-    \UnaryInfC{\(\Gamma, A \vdash B\)}
-  \end{prooftree}
+  \begin{align*}
+    &\vdash \texttt{alloc} : \tau \rightarrow *\tau &
+    &\vdash \texttt{load} : *\tau \rightarrow \tau \\
+    &\vdash \texttt{free} : *\tau \rightarrow () &
+    &\vdash \texttt{store} : *\tau \rightarrow \tau \rightarrow ()
+  \end{align*}
 
   \pause
 
   \hrule
 
-  \begin{columns}
-    \begin{column}{0.4\textwidth}
-      \begin{itemize}
-        \item \(A = \text{"I have 60 rupees"}\)
-          \pause
-        \item \(B = \text{"I can buy 30 arrows"}\)
-          \pause
-        \item \(C = \text{"I can buy a Deku Shield"}\)
-      \end{itemize}
-    \end{column}
-    \pause
-    \begin{column}{0.5\textwidth}
-      \begin{tblr}{
-          colspec = {X[1,c,h] X[2,c,m] X[2,c,m]},
-          vline{3} = {2,3}{solid},
-        }
-        \SetCell[c=2]{c} \textbf{Shop} & & Price (Rupees) \\
-        \includegraphics[width=2.5em]{OOT-arrows} & Arrows (30) & 60 \\
-        \hline
-        \includegraphics[width=2.5em]{OOT-shield} & Deku Shield & 40 \\
-      \end{tblr}
-    \end{column}
-  \end{columns}
+  \begin{lst}[width = 0.6\textwidth]{rust}
+    let x = alloc(v);
+    let _ = free(x);
+    load(x) // accessing x after free
+  \end{lst}
+\end{frame}
+
+\begin{frame}[fragile]{Linear Types}{Allocation of Memory -- Linear Types}
+  \centering
+
+  \begin{align*}
+    &\vdash \texttt{alloc} : \tau \rightarrow \langle *\tau\rangle &
+    &\vdash \texttt{load} : \langle *\tau\rangle \rightarrow \tau \\
+    &\vdash \texttt{free} : \langle *\tau\rangle \rightarrow () &
+    &\vdash \texttt{store} : \langle *\tau\rangle \rightarrow \tau \rightarrow ()
+  \end{align*}
 
   \pause
 
   \hrule
 
-  \begin{prooftree}
-    \AxiomC{\(A \vdash B\)}
-    \AxiomC{\(A \vdash C\)}
-    \RightLabel{\(\land\)-I}
-    \BinaryInfC{\(A, A \vdash B \land C\)}
-    \RightLabel{Contraction}
-    \UnaryInfC{\(A \vdash B \land C\)}
-  \end{prooftree}
+  \begin{lst}[width = 0.6\textwidth]{rust}
+    let x = alloc(v);
+    let w = load(x); // x is consumed here
+    free(x) // does not exist anymore
+  \end{lst}
+\end{frame}
+
+\begin{frame}[fragile]{Linear Types}{Allocation of Memory -- Capability-Passing Style}
+  \centering
+
+  \begin{align*}
+    &\vdash \texttt{alloc} : \tau \rightarrow \langle *\tau\rangle &
+    &\vdash \texttt{load} : \langle *\tau\rangle \rightarrow \langle *\tau\rangle \times \tau \\
+    &\vdash \texttt{free} : \langle *\tau\rangle \rightarrow () &
+    &\vdash \texttt{store} : \langle *\tau\rangle \rightarrow \tau \rightarrow \langle *\tau\rangle
+  \end{align*}
+
+  \pause
+
+  \hrule
+
+  \begin{lst}[width = 0.6\textwidth]{rust}
+    let x0 = alloc(v);
+    let (x1, w) = load(x0);
+    free(x1) // new x1 so fine
+  \end{lst}
+\end{frame}
+
+\section{Rust}
+
+\subsection{Ownership and Move Semantics}
+
+\begin{frame}{Rust -- Onwership and Move Semantics}
+\end{frame}
+
+\subsection{Borrowing}
+
+\begin{frame}{Rust -- Borrowing}
+\end{frame}
+
+\subsection{Lifetimes}
+
+\begin{frame}{Rust --Lifetimes}
 \end{frame}
 
 \end{document}
