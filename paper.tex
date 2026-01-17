@@ -136,7 +136,7 @@ Since we are mostly concerned with general concepts, we will only view a reduced
 
 We write \(\Gamma \vdash A\) (read \enquote{\(\Gamma\) entails \(A\)}), in which \(\Gamma\) is some set of propositions (which we will call context) and \(A\) is a single proposition, to convey that, given that the propositions in \(\Gamma\) are true, \(A\) is also true. To do logical reasoning, we need rules for such reasoning, for which we introduce a system that is loosely based on Natural Deduction, seen in \cref{fig:intuitionistic:logic:nd}.
 
-We have the \emph{axiom} Id, the three \emph{structural} rules Exchange, Contraction and Weakening, and \emph{logical} rules for \emph{implications} (\(\rightarrow\)-I and \(\rightarrow\)-E) and \emph{conjunctives} (\(\land\)-I and \(\land\)-E). Note that explicit structural rules are unusual for Natural Deduction, as they are typically absorbed into the logical rules, but explicit ones will make the transition to linear types simpler.
+We have the \emph{axiom} Id, the three \emph{structural} rules Exchange, Contraction and Weakening, and \emph{logical} rules for \emph{implications} (\(\rightarrow\)-I and \(\rightarrow\)-E) and \emph{conjunctives} (\(\land\)-I and \(\land\)-E). Note that explicit structural rules are unusual for Natural Deduction, as they are typically integrated into the logical rules, but explicit ones will make the transition to linear types simpler.
 
 A rule describes a step of logical reasoning. The core idea is that, when the things above the line hold, the things below the line hold as well. Hence, there are two ways to interpret a rule:
 \begin{description}
@@ -427,7 +427,7 @@ If we replace the vector with an integer in the above code, the Rust compiler wi
       fn get_len(s: Vec<usize>) -> usize {
           s.len()
       }
-      let v = vec![];
+      let mut v = vec![];
       let len = get_len(v);
       v.push(1); // error, v was moved
     \end{minted}
