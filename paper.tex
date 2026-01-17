@@ -79,7 +79,7 @@ While we will not look at type inference in this work, and will instead focus on
 
 \subsection{Intuitionistic Logic} \label{sec:intuitionistic:logic}
 
-Logic provides formal languages and inference rules for precise reasoning. When logic is formalized, proofs become mathematical objects that can be analyzed. Intuitionistic logic is one such formal system. It's primary differentiator from classical logic is the lack of the law of excluded middle. In classical logic, for any proposition \(A\), the formula \(A \lor \lnot A\) is a tautology. In intuitionistic logic, this is not generally provable.~\cite{mints-intro-intuitionistic-logic}
+Logic provides formal languages and inference rules for precise reasoning. When logic is formalized, proofs become mathematical objects that can be analysed. Intuitionistic logic is one such formal system. It's primary differentiator from classical logic is the lack of the law of excluded middle. In classical logic, for any proposition \(A\), the formula \(A \lor \lnot A\) is a tautology. In intuitionistic logic, this is not generally provable.~\cite{mints-intro-intuitionistic-logic}
 
 With this limitation, intuitionistic logic is a logic of constructive proofs. Classical logic allows proofs of a proposition that don't actually construct a specific witness, proofs by contradiction being the typical culprit. In intuitionistic logic, one must explicitly provide the corresponding constructive evidence.
 
@@ -136,7 +136,7 @@ Since we are mostly concerned with general concepts, we will only view a reduced
 
 We write \(\Gamma \vdash A\) (read \enquote{\(\Gamma\) entails \(A\)}), in which \(\Gamma\) is some set of propositions (which we will call context) and \(A\) is a single proposition, to convey that, given that the propositions in \(\Gamma\) are true, \(A\) is also true. To do logical reasoning, we need rules for such reasoning, for which we introduce a system that is loosely based on Natural Deduction, seen in \cref{fig:intuitionistic:logic:nd}.
 
-We have the \emph{axiom} Id, the three \emph{structural} rules Exchange, Contraction and Weakening, and \emph{logical} rules for \emph{implications} (\(\rightarrow\)-I and \(\rightarrow\)-E) and \emph{conjunctives} (\(\land\)-I and \(\land\)-E). Note that explicit structurual rules are unusual for Natural Deduction, as they are typically absorbed into the logical rules, but explicit ones will make the transition to linear types simpler.
+We have the \emph{axiom} Id, the three \emph{structural} rules Exchange, Contraction and Weakening, and \emph{logical} rules for \emph{implications} (\(\rightarrow\)-I and \(\rightarrow\)-E) and \emph{conjunctives} (\(\land\)-I and \(\land\)-E). Note that explicit structural rules are unusual for Natural Deduction, as they are typically absorbed into the logical rules, but explicit ones will make the transition to linear types simpler.
 
 A rule describes a step of logical reasoning. The core idea is that, when the things above the line hold, the things below the line hold as well. Hence, there are two ways to interpret a rule:
 \begin{description}
@@ -378,7 +378,7 @@ Now the code from before can be written like so:
 
 The \mintinline{text}{free} function still fully consumes the resource and \(\langle *\tau\rangle\) still uniquely owns its memory, yet \mintinline{text}{load} and \mintinline{text}{store} can now be used.
 
-There are two issues with this approach however. Firstly, this style of programming is not very ergonomic, and secondly, nothing prevents the provider of the function from returning completely new unrelated objects. We will discuss how to fix these issues in \cref{sec:rust:borrowing}.
+However, there are two issues with this approach. Firstly, this style of programming is not very ergonomic, and secondly, nothing prevents the provider of the function from returning completely new unrelated objects. We will discuss how to fix these issues in \cref{sec:rust:borrowing}.
 
 It is worth noting again that this is only a simplified view of the topic. \citet{wadler-linear-taste} e.g. goes into further detail.
 
