@@ -1,4 +1,4 @@
-\documentclass[aspectratio=169]{beamer}
+\documentclass[aspectratio=169,onlytextwidth]{beamer}
 
 \usepackage[utf8]{inputenc}
 \usepackage{listings}
@@ -20,6 +20,10 @@
 \usepackage{tabularray}
 \usepackage{graphicx}
 \graphicspath{ {./resources/} }
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{marvosym}
 
 % taken from acmart.cls
 \ifxetex
@@ -74,7 +78,7 @@
 }
 
 \newtcblisting{lst}[2][]{
-  colframe = white,
+  colframe = tumblue!20!white,
   colback = tumblue!5!white,
   boxsep = 2pt,
   boxrule = 1pt,
@@ -237,285 +241,184 @@
   \pause
   \hrule
 
-  \begin{prooftree}
-    \AxiomC{\(A \vdash B\)}
-    \AxiomC{\(A \vdash C\)}
-    \RightLabel{\(\land\)-I}
-    \BinaryInfC{\(A, A \vdash B \land C\)}
-    \RightLabel{Contraction}
-    \UnaryInfC{\(A \vdash B \land C\)}
-  \end{prooftree}
-\end{frame}
-
-\subsection{Intuitionistic Types}
-
-\begin{frame}{Intuitionistic Types}{Grammar of Typed Lambda Calculus}
-  \centering
-  \begin{bnf}
-    \(s,t,u,v,w\) ::= \(x\) : Variable
-    | \(\lambda x\ldotp s\) : Function Definition | \(s\ t\) : Function Application
-    | \((u, v)\) : Tuple Definition | let \((x, y) = t\); \(w\) : Tuple Destructuring
-  \end{bnf}
-
-  \vspace{2em}
-
-  \begin{bnf}
-    \(\tau, \pi, \omega\) ::= \(T\) : Base Type
-    | \(\tau \rightarrow \pi\) : Functions
-    | \(\pi \times \omega\) : Tuple
-  \end{bnf}
-\end{frame}
-
-\begin{frame}{Intuitionistic Types}{Intuitionistic Types -- Judgement Rules}
-  \centering
-  \begin{prooftree}
-    \AxiomC{}
-    \RightLabel{Id}
-    \UnaryInfC{\(x : \tau \vdash x : \tau\)}
-    \DisplayProof\qquad
-    \AxiomC{\(\Delta, \Gamma \vdash t : \tau\)}
-    \RightLabel{Exchange}
-    \UnaryInfC{\(\Gamma, \Delta \vdash t: \tau\)}
-  \end{prooftree}
-
-  \begin{prooftree}
-    \AxiomC{\(\Gamma, y : \tau, z : \tau \vdash u : \pi\)}
-    \RightLabel{Contraction}
-    \UnaryInfC{\(\Gamma, x : \tau \vdash u[x/y,x/z] : \pi\)}
-    \DisplayProof\qquad
-    \AxiomC{\(\Gamma \vdash s : \pi\)}
-    \RightLabel{Weakening}
-    \UnaryInfC{\(\Gamma, x : \tau \vdash s : \pi\)}
-  \end{prooftree}
-
-  \begin{prooftree}
-    \AxiomC{\(\Gamma, x : \tau \vdash t : \pi\)}
-    \RightLabel{\(\rightarrow\)-I}
-    \UnaryInfC{\(\Gamma \vdash \lambda x\ldotp t : \tau \rightarrow \pi\)}
-    \DisplayProof\qquad
-    \AxiomC{\(\Gamma \vdash s : \tau \rightarrow \pi\)}
-    \AxiomC{\(\Delta \vdash t : \tau\)}
-    \RightLabel{\(\rightarrow\)-E}
-    \BinaryInfC{\(\Gamma, \Delta \vdash s\ t : \pi\)}
-  \end{prooftree}
-
-  \begin{prooftree}
-    \AxiomC{\(\Gamma \vdash u : \tau\)}
-    \AxiomC{\(\Delta \vdash v : \pi\)}
-    \RightLabel{\(\times\)-I}
-    \BinaryInfC{\(\Gamma, \Delta \vdash (u, v) : \tau \times \pi\)}
-    \DisplayProof\qquad
-    \AxiomC{\(\Gamma \vdash t : \tau \times \pi\)}
-    \AxiomC{\(\Delta, x : \tau, y : \pi \vdash w : \omega\)}
-    \RightLabel{\(\times\)-E}
-    \BinaryInfC{\(\Gamma, \Delta \vdash \text{ let } (x, y) = t; w : \omega\)}
-  \end{prooftree}
-
-  {\small The notation \(u[x/y,x/z]\) means to replace all occurrences of \(y\) and \(z\) in \(u\) by \(x\).}
-\end{frame}
-
-\begin{frame}{Intuitionistic Types}{Intuitionistic Logic vs Intuitionistic Types}
-  \begin{columns}
-    \begin{column}{0.5\textwidth}
-      \centering
-      \textbf{Intuitionistic Logic}
-
-      \vspace{3mm}
+  \begin{columns}[c]
+    \begin{column}{0.4\textwidth}
       \begin{prooftree}
-        \AxiomC{\(\Gamma \vdash A \rightarrow B\)}
-        \AxiomC{\(\Delta \vdash A\)}
-        \RightLabel{\(\rightarrow\)-E}
-        \BinaryInfC{\(\Gamma, \Delta \vdash B\)}
+        \AxiomC{\(A \vdash B\)}
+        \AxiomC{\(A \vdash C\)}
+        \RightLabel{\(\land\)-I}
+        \BinaryInfC{\(A, A \vdash B \land C\)}
+        \RightLabel{Contraction}
+        \UnaryInfC{\(A \vdash B \land C\)}
       \end{prooftree}
     \end{column}
 
-    \begin{column}{0.5\textwidth}
-      \centering
-      \textbf{Intuitionistic Types}
+    \pause
 
-      \vspace{3mm}
+    \begin{column}{0.4\textwidth}
       \begin{prooftree}
-        \AxiomC{\(\Gamma \vdash s : \tau \rightarrow \pi\)}
-        \AxiomC{\(\Delta \vdash t : \tau\)}
-        \RightLabel{\(\rightarrow\)-E}
-        \BinaryInfC{\(\Gamma, \Delta \vdash s\ t : \pi\)}
+        \AxiomC{\Lightning}
+        \UnaryInfC{\(\langle A\rangle \vdash B \land C\)}
       \end{prooftree}
     \end{column}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Intuitionistic Types}{Proof of \(f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\)}
-  \centering
-  \begin{prooftree}
-    \AxiomC{}
-    \RightLabel{Id}
-    \UnaryInfC{\(z : \tau \vdash z : \tau\)}
-
-    \AxiomC{}
-    \RightLabel{Id}
-    \UnaryInfC{\(f : \tau \rightarrow \pi \vdash f : \tau \rightarrow \pi\)}
-
-    \AxiomC{}
-    \RightLabel{Id}
-    \UnaryInfC{\(y : \tau \vdash y : \tau\)}
-
-    \RightLabel{\(\rightarrow\)-E}
-    \BinaryInfC{\(f : \tau \rightarrow \pi, z : \tau \vdash f\ z : \pi\)}
-
-    \RightLabel{\(\times\)-I}
-    \BinaryInfC{\(y : \tau, f : \tau \rightarrow \pi, z : \tau \vdash (y, f\ z) : \tau \times \pi\)}
-
-    \RightLabel{Exchange}
-    \UnaryInfC{\(f : \tau \rightarrow \pi, y : \tau, z : \tau \vdash (y, f\ z) : \tau \times \pi\)}
-
-    \RightLabel{Contraction}
-    \UnaryInfC{\(f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\)}
-  \end{prooftree}
-
-  \pause
-  \hrule
-
-  \begin{prooftree}
-    \AxiomC{}
-    \RightLabel{Id}
-    \UnaryInfC{\(A \vdash A\)}
-
-    \AxiomC{}
-    \RightLabel{Id}
-    \UnaryInfC{\(A \rightarrow B \vdash A \rightarrow B\)}
-
-    \AxiomC{}
-    \RightLabel{Id}
-    \UnaryInfC{\(A \vdash A\)}
-
-    \RightLabel{\(\rightarrow\)-E}
-    \BinaryInfC{\(A \rightarrow B, A \vdash B\)}
-
-    \RightLabel{\(\land\)-I}
-    \BinaryInfC{\(A, A \rightarrow B, A \vdash A \land B\)}
-
-    \RightLabel{Exchange}
-    \UnaryInfC{\(A \rightarrow B, A, A \vdash A \land B\)}
-
-    \RightLabel{Contraction}
-    \UnaryInfC{\(A \rightarrow B, A \vdash A \land B\)}
-  \end{prooftree}
-\end{frame}
-
 \subsection{Linear Types}
 
-\begin{frame}[fragile]{Linear Types}{Allocation of Memory -- Use After Free}
+\begin{frame}[fragile]{Linear Types}{Box Smart Pointer}
   \centering
 
-  \begin{align*}
-    &\vdash \texttt{alloc} : \tau \rightarrow *\tau &
-    &\vdash \texttt{load} : *\tau \rightarrow \tau \\
-    &\vdash \texttt{free} : *\tau \rightarrow () &
-    &\vdash \texttt{store} : *\tau \rightarrow \tau \rightarrow ()
-  \end{align*}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \item Copy Types = Intuitionistic Types
+      \end{itemize}
+    \end{column}
 
-  \pause
-  \hrule
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \item Non-Copy Types = Linear Types
+      \end{itemize}
+    \end{column}
+  \end{columns}
 
-  \begin{lst}[width = 0.6\textwidth]{rust}
-    let x = alloc(v);
-    let _ = free(x);
-    load(x) // accessing x after free
+  \onslide<2->
+
+  \begin{lst}[minted options = {escapeinside=||}]{rust}
+    struct Box<T|\onslide<3->|: Copy|\onslide<2->|> { ... }
+    |\onslide<4->|impl<T: Copy> Box<T> {
+      |\onslide<5->|fn alloc(v: T) -> Self {}   fn load(b: Self) -> T {}
+      fn free(b: Self) {}         fn store(b: Self, v: T) {}
+    |\onslide<4->|}|\onslide<2->|
   \end{lst}
+
+  \onslide<6->
+  \vspace{-3mm}
+
+  \begin{columns}
+    \begin{column}{0.48\textwidth}
+      \begin{lst}[minted options = {mathescape}]{rust}
+        let b = Box::alloc(1);
+        Box::free(b);
+        let v = Box::load(b); // $\text{\Lightning}$
+      \end{lst}
+    \end{column}
+
+    \onslide<7->
+
+    \begin{column}{0.48\textwidth}
+      \begin{lst}[minted options = {mathescape}]{rust}
+        let b = Box::alloc(1);
+        let v = Box::load(b);
+        Box::free(b); // $\text{\Lightning}$
+      \end{lst}
+    \end{column}
+  \end{columns}
+
+  \onslide<1->
 \end{frame}
 
-\begin{frame}[fragile]{Linear Types}{Allocation of Memory -- Linear Types}
+\begin{frame}[fragile]{Linear Types}{Capability-Passing Style}
   \centering
 
-  \begin{align*}
-    &\vdash \texttt{alloc} : \tau \rightarrow \langle *\tau\rangle &
-    &\vdash \texttt{load} : \langle *\tau\rangle \rightarrow \tau \\
-    &\vdash \texttt{free} : \langle *\tau\rangle \rightarrow () &
-    &\vdash \texttt{store} : \langle *\tau\rangle \rightarrow \tau \rightarrow ()
-  \end{align*}
-
-  \pause
-  \hrule
-
-  \begin{lst}[width = 0.6\textwidth]{rust}
-    let x = alloc(v);
-    let w = load(x); // x is consumed here
-    free(x) // does not exist anymore
+  \begin{lst}[minted options = {escapeinside=||}]{rust}
+    struct Box<T: Copy> { ... }
+    impl<T: Copy> Box<T> {
+      fn alloc(v: T) -> Self {}   fn load(b: Self) -> |\onslide<2->|(Self, |\onslide<1->|T|\onslide<2->|)|\onslide<1->| {}
+      fn free(b: Self) {}         fn store(b: Self, v: T)|\onslide<2->| -> Self|\onslide<1->| {}
+    }
   \end{lst}
-\end{frame}
 
-\begin{frame}[fragile]{Linear Types}{Allocation of Memory -- Capability-Passing Style}
-  \centering
+  \onslide<3->
 
-  \begin{align*}
-    &\vdash \texttt{alloc} : \tau \rightarrow \langle *\tau\rangle &
-    &\vdash \texttt{load} : \langle *\tau\rangle \rightarrow \langle *\tau\rangle \times \tau \\
-    &\vdash \texttt{free} : \langle *\tau\rangle \rightarrow () &
-    &\vdash \texttt{store} : \langle *\tau\rangle \rightarrow \tau \rightarrow \langle *\tau\rangle
-  \end{align*}
-
-  \pause
-  \hrule
-
-  \begin{lst}[width = 0.6\textwidth]{rust}
-    let x0 = alloc(v);
-    let (x1, w) = load(x0);
-    free(x1) // new x1 so fine
+  \begin{lst}[minted options = {mathescape}]{rust}
+    let b0 = Box::alloc(1);
+    let (b1, v) = Box::load(b0);
+    Box::free(b1); // $\checkmark$
   \end{lst}
+
+  \onslide<1->
 \end{frame}
 
 \section{Rust}
 
 \subsection{Ownership and Move Semantics}
 
-\begin{frame}[fragile]{Rust -- Onwership and Move Semantics}{Copy Trait}
+\begin{frame}[fragile]{Rust -- Onwership and Move Semantics}
   \centering
 
-  \begin{lst}{rust}
-    let mut v = vec![];
-    let mut w = v;
-    v.push(1); // error
-    w.push(2);
+  \begin{lst}[minted options = {escapeinside=||}]{rust}
+    struct Box<T: Copy> { ... }
+    impl<T: Copy> Box<T> {
+      fn alloc(v: T) -> Self {}   fn load(b: Self) -> (Self, T) {}
+      fn free(b: Self) {}         fn store(b: Self, v: T) -> Self {}
+    }
+  \end{lst}
+
+  \begin{lst}[minted options = {mathescape}]{rust}
+    let x = Box::alloc(1);
+    let y = x; // value gets moved into y
+    Box::store(x, 2); // $\text{\Lightning}$
   \end{lst}
 
   \pause
-  \hrule
 
-  \begin{lst}{rust}
-    let mut v = 1;
-    let mut w = v; // copies v
-    v += 1; // ok because v is Copy
-    w += 2;
-  \end{lst}
+  \begin{itemize}
+    \item Non-Copy values always have a single owner.
+    \item Owner can change (move).
+  \end{itemize}
 \end{frame}
+
+% \begin{frame}[fragile]{Rust -- Drop}
+%   \centering
+%
+%   \begin{lst}[minted options = {escapeinside=||}]{rust}
+%     struct Box<T: Copy> { ... }
+%     impl<T: Copy> Box<T> {
+%       fn alloc(v: T) -> Self {}   fn load(b: Self) -> (Self, T) {}
+%                                   fn store<T>(b: Self, v: T) -> Self {}
+%     }
+%     impl<T: Copy> Drop for Box<T> { fn drop(...) ... }
+%   \end{lst}
+%
+%   \begin{lst}[minted options = {mathescape}]{rust}
+%     fn main() {
+%       let b0 = Box::alloc(1);
+%       let (b1, v) = Box::load(b0);
+%       |\onslide<2->|drop(b1);|\onslide<1->|
+%     }
+%   \end{lst}
+% \end{frame}
 
 \subsection{Borrowing}
 
 \begin{frame}[fragile]{Rust -- Borrowing}
-  \centering
-
-  \begin{lst}{rust}
-    fn get_len(s: Vec<usize>) -> usize {
-        s.len()
+  \begin{lst}[minted options = {escapeinside=||}]{rust}
+    struct Box<T: Copy> { ... }
+    impl<T: Copy> Box<T> {
+      fn alloc(v: T) -> Self {}   fn load(b: |\onslide<2->|&|\onslide<1->|Self) -> T {}
+      fn free(b: Self) {}         fn store(b: |\onslide<2->|&mut |\onslide<1->|Self, v: T) {}
     }
-
-    let mut v = vec![];
-    let len = get_len(v);
-    v.push(1); // error, v was moved
   \end{lst}
 
-  \pause
-  \hrule
+  \onslide<3->
 
   \begin{lst}{rust}
-    fn gen_len(s: &Vec<usize>) -> usize {
-        s.len()
-    }
-
-    let mut v = vec![];
-    let len = gen_len(&v); // borrows v
-    v.push(1);
+    let x = Box::alloc(1);
+    let v = Box::load(&x); // immutably borrows x
+    Box::store(&mut x, 2); // mutably borrows x
   \end{lst}
+
+  \onslide<4->
+
+  For a given value, at any given time, there can only be one of:
+  \begin{itemize}
+    \item any number of immutable borrows (shared reference)
+    \item a \textbf{single} mutable borrow (exclusive reference)
+  \end{itemize}
+
+  \onslide<1->
 \end{frame}
 
 \subsection{Lifetimes}
@@ -523,79 +426,32 @@
 \begin{frame}[fragile]{Rust -- Lifetimes}
   \centering
 
-  \begin{lst}{rust}
-    fn get(v: &Vec<usize>, index: usize) -> usize {
-        v[index]
-    }
-  \end{lst}
+  \begin{onlyenv}<1-4>
+    \begin{lst}[minted options = {escapeinside=||}]{rust}
+      fn get<T>(v: &Vec<T>, index: usize) -> |\onslide<3->|&|\onslide<1->|T {
+          &v[index]
+      }
+    \end{lst}
+  \end{onlyenv}
 
-  \pause
-  \hrule
+  \begin{onlyenv}<5->
+    \begin{lst}[minted options = {escapeinside=||}]{rust}
+      fn get<'a, T>(v: &'a Vec<T>, index: usize) -> &'a T {
+          &v[index]
+      }
+    \end{lst}
+  \end{onlyenv}
 
-  \begin{lst}{rust}
-    fn get<T>(v: &Vec<T>, index: usize) -> T {
-        v[index]
-    }
-  \end{lst}
-
-  \pause
-  \hrule
-
-  \begin{lst}{rust}
-    fn get<T>(v: &Vec<T>, index: usize) -> &T {
-        &v[index]
-    }
-  \end{lst}
-\end{frame}
-
-\begin{frame}[fragile]{Rust -- Lifetimes}
-  \centering
-
-  \begin{lst}{rust}
-    fn get<T>(v: &Vec<T>, index: usize) -> &T {
-        &v[index]
-    }
-  \end{lst}
-
-  \pause
-  \hrule
-
-  \begin{lst}{rust}
-    fn get<'a, T>(v: &'a Vec<T>, index: usize) -> &'a T {
-        &v[index]
-    }
-  \end{lst}
-\end{frame}
-
-\begin{frame}[fragile]{Rust -- Lifetimes}
-  \centering
-
-  \begin{lst}{rust}
-    fn get<T>(v: &Vec<T>, index: usize) -> &T {
-        &v[index]
-    }
-  \end{lst}
-
-  \pause
-  \hrule
-
-  \begin{lst}{rust}
-    fn get<'a, T>(v: &'a Vec<T>, index: usize) -> &'a T {
-        &v[index]
-    }
-  \end{lst}
-
-  \pause
-  \hrule
+  \onslide<2->
 
   \begin{lst}[minted options = {escapeinside=||}]{rust}
-    let mut v = vec![1, 2];
-    let x: &usize = get(&v, 1); |\tikzmark{lifetime-begin}|
-    v.push(3);
-    v.push(4);
-    println!("{x}"); |\tikzmark{lifetime-end}|
+    let mut v = vec![Box::alloc(1), Box::alloc(2)];
+    let x: |\onslide<3->|&|\onslide<2->|Box<usize> = get(&v, 1); |\tikzmark{lifetime-begin}|
+    |\onslide<4->|v.clear();
+    println!("{x}"); |\tikzmark{lifetime-end}||\onslide<2->|
   \end{lst}
-  \pause
+
+  \onslide<6->
   \begin{tikzpicture}[remember picture]
     \coordinate (begin) at (pic cs:lifetime-begin);
     \coordinate (begin-mid) at ($ (begin) + (0.5, 0) $);
@@ -604,6 +460,85 @@
 
     \draw[overlay, Stealth-Stealth, thick] (begin) -- (begin-mid) -- node[right] {lifetime \mintinline{text}{'a}} (end-mid) -- (end);
   \end{tikzpicture}
+
+  \onslide<1->
 \end{frame}
+
+% \begin{frame}[fragile]{Rust -- Lifetimes}
+%   \centering
+%
+%   \begin{onlyenv}<1>
+%     \begin{lst}[minted options = {escapeinside=||}]{rust}
+%       struct Box<T: Copy> { ... }
+%       impl<T: Copy> Box<T> {
+%         fn alloc(v: T) -> Self {}   fn load(b: &Self) -> T {}
+%         fn free(b: Self) {}         fn store(b: &mut Self, v: T) {}
+%       }
+%     \end{lst}
+%   \end{onlyenv}
+%
+%   \begin{onlyenv}<2->
+%     \begin{lst}[minted options = {escapeinside=||}]{rust}
+%       struct Box<T> { ... }
+%       impl<T> Box<T> {
+%         fn alloc(v: T) -> Self {}   fn load(b: &Self) -> T {}
+%         fn free(b: Self) {}         fn store(b: &mut Self, v: T) {}
+%       }
+%     \end{lst}
+%   \end{onlyenv}
+%
+%   \onslide<3->
+%   \begin{lst}[minted options = {mathescape}]{rust}
+%     let x = Box::alloc(Vec::new());
+%     let v = Box::load(&x); // $\text{\Lightning}$
+%   \end{lst}
+%
+%   \onslide<1->
+% \end{frame}
+%
+% \begin{frame}[fragile]{Rust -- Lifetimes}{A New \mintinline{text}{load} Function}
+%   \centering
+%
+%   \begin{onlyenv}<1,2>
+%     \begin{lst}[minted options = {escapeinside=||}]{rust}
+%       struct Box<T> { ... }
+%       impl<T> Box<T> {
+%         fn alloc(v: T) -> Self {}   fn load(b: &Self) -> |\onslide<2->|&|\onslide<1->|T {}
+%         fn free(b: Self) {}         fn store(b: &mut Self, v: T) {}
+%       }
+%     \end{lst}
+%   \end{onlyenv}
+%
+%   \begin{onlyenv}<3->
+%     \begin{lst}[minted options = {escapeinside=||}]{rust}
+%       struct Box<T> { ... }
+%       impl<T> Box<T> {
+%         fn alloc(v: T) -> Self {}   fn load<'a>(b: &'a Self) -> &'a T {}
+%         fn free(b: Self) {}         fn store(b: &mut Self, v: T) {}
+%       }
+%     \end{lst}
+%   \end{onlyenv}
+%
+%   \onslide<3->
+%   \begin{lst}[minted options = {mathescape}]{rust}
+%     let x = Box::alloc(1);
+%     let v: &usize = Box::load(&x); |\tikzmark{lifetime-begin}|
+%     Box::store(&mut x, 2);
+%     Box::store(&mut x, 3);
+%     println!("{v}"); // $\text{\Lightning}$ $\tikzmark{lifetime-end}$
+%   \end{lst}
+%
+%   \onslide<4->
+%   \begin{tikzpicture}[remember picture]
+%     \coordinate (begin) at (pic cs:lifetime-begin);
+%     \coordinate (begin-mid) at ($ (begin) + (0.5, 0) $);
+%     \coordinate (end) at (pic cs:lifetime-end);
+%     \coordinate (end-mid) at (begin-mid |- end);
+%
+%     \draw[overlay, Stealth-Stealth, thick] (begin) -- (begin-mid) -- node[right] {lifetime \mintinline{text}{'a}} (end-mid) -- (end);
+%   \end{tikzpicture}
+%
+%   \onslide<1->
+% \end{frame}
 
 \end{document}
