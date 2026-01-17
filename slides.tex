@@ -2,8 +2,10 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage{listings}
-\usepackage{tikz}
 \usepackage[style=alphabetic,giveninits=true,terseinits=true]{biblatex}
+
+\usepackage{tikz}
+\usetikzlibrary{tikzmark, calc, arrows.meta}
 
 \usepackage{minted}
 \setminted{autogobble, numbersep=0.5em, escapeinside=||}
@@ -72,11 +74,11 @@
 }
 
 \newtcblisting{lst}[2][]{
-  colframe = tumblue!20!white,
+  colframe = white,
   colback = tumblue!5!white,
   boxsep = 2pt,
   boxrule = 1pt,
-  arc = 10pt,
+  arc = 5pt,
   listing only, minted language = #2, #1
 }
 
@@ -114,9 +116,7 @@
   \end{bnf}
 
   \pause
-
   \vspace{3mm}
-
   \hrule
 
   \begin{prooftree}
@@ -208,7 +208,6 @@
   \end{prooftree}
 
   \pause
-
   \hrule
 
   \begin{columns}
@@ -236,7 +235,6 @@
   \end{columns}
 
   \pause
-
   \hrule
 
   \begin{prooftree}
@@ -375,7 +373,6 @@
   \end{prooftree}
 
   \pause
-
   \hrule
 
   \begin{prooftree}
@@ -418,7 +415,6 @@
   \end{align*}
 
   \pause
-
   \hrule
 
   \begin{lst}[width = 0.6\textwidth]{rust}
@@ -439,7 +435,6 @@
   \end{align*}
 
   \pause
-
   \hrule
 
   \begin{lst}[width = 0.6\textwidth]{rust}
@@ -460,7 +455,6 @@
   \end{align*}
 
   \pause
-
   \hrule
 
   \begin{lst}[width = 0.6\textwidth]{rust}
@@ -474,17 +468,142 @@
 
 \subsection{Ownership and Move Semantics}
 
-\begin{frame}{Rust -- Onwership and Move Semantics}
+\begin{frame}[fragile]{Rust -- Onwership and Move Semantics}{Copy Trait}
+  \centering
+
+  \begin{lst}{rust}
+    let mut v = vec![];
+    let mut w = v;
+    v.push(1); // error
+    w.push(2);
+  \end{lst}
+
+  \pause
+  \hrule
+
+  \begin{lst}{rust}
+    let mut v = 1;
+    let mut w = v; // copies v
+    v += 1; // ok because v is Copy
+    w += 2;
+  \end{lst}
 \end{frame}
 
 \subsection{Borrowing}
 
-\begin{frame}{Rust -- Borrowing}
+\begin{frame}[fragile]{Rust -- Borrowing}
+  \centering
+
+  \begin{lst}{rust}
+    fn get_len(s: Vec<usize>) -> usize {
+        s.len()
+    }
+
+    let mut v = vec![];
+    let len = get_len(v);
+    v.push(1); // error, v was moved
+  \end{lst}
+
+  \pause
+  \hrule
+
+  \begin{lst}{rust}
+    fn gen_len(s: &Vec<usize>) -> usize {
+        s.len()
+    }
+
+    let mut v = vec![];
+    let len = gen_len(&v); // borrows v
+    v.push(1);
+  \end{lst}
 \end{frame}
 
 \subsection{Lifetimes}
 
-\begin{frame}{Rust --Lifetimes}
+\begin{frame}[fragile]{Rust -- Lifetimes}
+  \centering
+
+  \begin{lst}{rust}
+    fn get(v: &Vec<usize>, index: usize) -> usize {
+        v[index]
+    }
+  \end{lst}
+
+  \pause
+  \hrule
+
+  \begin{lst}{rust}
+    fn get<T>(v: &Vec<T>, index: usize) -> T {
+        v[index]
+    }
+  \end{lst}
+
+  \pause
+  \hrule
+
+  \begin{lst}{rust}
+    fn get<T>(v: &Vec<T>, index: usize) -> &T {
+        &v[index]
+    }
+  \end{lst}
+\end{frame}
+
+\begin{frame}[fragile]{Rust -- Lifetimes}
+  \centering
+
+  \begin{lst}{rust}
+    fn get<T>(v: &Vec<T>, index: usize) -> &T {
+        &v[index]
+    }
+  \end{lst}
+
+  \pause
+  \hrule
+
+  \begin{lst}{rust}
+    fn get<'a, T>(v: &'a Vec<T>, index: usize) -> &'a T {
+        &v[index]
+    }
+  \end{lst}
+\end{frame}
+
+\begin{frame}[fragile]{Rust -- Lifetimes}
+  \centering
+
+  \begin{lst}{rust}
+    fn get<T>(v: &Vec<T>, index: usize) -> &T {
+        &v[index]
+    }
+  \end{lst}
+
+  \pause
+  \hrule
+
+  \begin{lst}{rust}
+    fn get<'a, T>(v: &'a Vec<T>, index: usize) -> &'a T {
+        &v[index]
+    }
+  \end{lst}
+
+  \pause
+  \hrule
+
+  \begin{lst}[minted options = {escapeinside=||}]{rust}
+    let mut v = vec![1, 2];
+    let x: &usize = get(&v, 1); |\tikzmark{lifetime-begin}|
+    v.push(3);
+    v.push(4);
+    println!("{x}"); |\tikzmark{lifetime-end}|
+  \end{lst}
+  \pause
+  \begin{tikzpicture}[remember picture]
+    \coordinate (begin) at (pic cs:lifetime-begin);
+    \coordinate (begin-mid) at ($ (begin) + (0.5, 0) $);
+    \coordinate (end) at (pic cs:lifetime-end);
+    \coordinate (end-mid) at (begin-mid |- end);
+
+    \draw[overlay, Stealth-Stealth, thick] (begin) -- (begin-mid) -- node[right] {lifetime \mintinline{text}{'a}} (end-mid) -- (end);
+  \end{tikzpicture}
 \end{frame}
 
 \end{document}
