@@ -1,0 +1,376 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage[style=alphabetic,giveninits=true,terseinits=true]{biblatex}
+
+\usepackage{bussproofs}
+\usepackage{simplebnf}
+
+\usepackage{tabularray}
+\usepackage{graphicx}
+\graphicspath{ {./resources/} }
+
+% taken from acmart.cls
+\ifxetex
+  \RequirePackage{unicode-math}
+  \setmathfont[Scale=MatchUppercase]{LibertinusMath-Regular.otf}
+  \setmathfont{latinmodern-math.otf}[range={cal}]
+  \RequirePackage[tt=false]{libertine}
+  \setmonofont[StylisticSet=3]{inconsolata}
+\else \ifluatex
+  \RequirePackage{unicode-math}
+  \setmathfont[Scale=MatchUppercase]{LibertinusMath-Regular.otf}
+  \setmathfont{latinmodern-math.otf}[range={cal}]
+  \RequirePackage[tt=false]{libertine}
+  \setmonofont[StylisticSet=3]{inconsolata}
+\else
+  \RequirePackage[T1]{fontenc}
+  \RequirePackage[tt=false, type1=true]{libertine}
+  \RequirePackage[varqu]{zi4}
+  \RequirePackage[libertine]{newtxmath}
+\fi \fi
+
+\definecolor{tumblue}{RGB}{0,101,189}
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\lstset{
+    basicstyle=\footnotesize\ttfamily,%
+    columns=fullflexible,%
+    keywordstyle=\bfseries\color{blue},%
+    commentstyle=\color{dkgreen},%
+    stringstyle=\color{mauve},%
+}
+
+\DeclareFieldFormat{url}{\href{#1}{\resizebox{!}{2ex}{\lower3pt\hbox{\pgfuseimage{beamericononline}}}}}
+\addbibresource{paper.bib}
+
+\setbeamerfont{footnote}{size=\tiny}
+\renewcommand\footnoterule{}
+\usecolortheme{orchid}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{sidebar right}{% also implies no navbar
+  \llap{\tikz\fill[tumblue,scale=.1] (0,0) ++(-5cm,-5cm) ++(-10cm,0)
+      +(0cm,0cm) -- +(4cm,0cm) -- +(4cm,-4cm) -- +(5cm,-4cm) -- +(5cm,0cm) --
+      +(10cm,0cm) -- +(10cm,-5cm) -- +(9cm,-5cm) -- +(9cm,-1cm) --
+      +(8cm,-1cm) -- +(8cm,-5cm) -- +(7cm,-5cm) -- +(7cm,-1cm) --
+      +(6cm,-1cm) -- +(6cm,-5cm) -- +(3cm,-5cm) -- +(3cm,-1cm) --
+      +(2cm,-1cm) -- +(2cm,-5cm) -- +(1cm,-5cm) -- +(1cm,-1cm) --
+      +(0cm,-1cm) -- cycle;}
+  % Slide number in triangle.
+  \vfill\llap{\tikz\path[fill=tumblue,inner sep=3pt] (0,0) -- ++(-1cm,0) -- +(1cm,1cm) -- cycle node[anchor=south east] {\usebeamerfont{footline}\color{white}\bfseries\insertframenumber};}%
+  % Variant without triangle
+  %\vfill\llap{\usebeamerfont{footline}\usebeamercolor[fg]{footline}\insertframenumber\hskip3pt}\vskip3pt%
+}
+
+\title{Linear Types and a Lifetime of Borrows}
+\author{Thomas Lindae}
+\institute{School of Computation, Information, and Technology\\Technical University of Munich}
+\date{2026-01-19}
+
+\begin{document}
+
+% \begin{frame}{Organization}
+% \begin{itemize}
+%   % Don't forget to adjust the \addbibresource above.
+%   \item Citation example, if you really need it\footfullcite{intro:rust-in-linux}
+% \end{itemize}
+% \end{frame}
+
+\begin{frame}
+    \titlepage
+\end{frame}
+
+\begin{frame}{A Simple Logic}
+  \centering
+  \begin{bnf}
+    \(A, B, C\) : Proposition ::= \(X\) : Variable | \(A \rightarrow B\) : Implication | \(A \land B\) : Conjunction
+  \end{bnf}
+\end{frame}
+
+\begin{frame}{Intuitionistic Logic -- Natural Deduction}
+  \centering
+  \begin{prooftree}
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(A \vdash A\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Delta, \Gamma \vdash A\)}
+    \RightLabel{Exchange}
+    \UnaryInfC{\(\Gamma, \Delta \vdash A\)}
+  \end{prooftree}
+
+  \begin{prooftree}
+    \AxiomC{\(\Gamma, A, A \vdash B\)}
+    \RightLabel{Contraction}
+    \UnaryInfC{\(\Gamma, A \vdash B\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma \vdash B\)}
+    \RightLabel{Weakening}
+    \UnaryInfC{\(\Gamma, A \vdash B\)}
+  \end{prooftree}
+
+  \begin{prooftree}
+    \AxiomC{\(\Gamma, A \vdash B\)}
+    \RightLabel{\(\rightarrow\)-I}
+    \UnaryInfC{\(\Gamma \vdash A \rightarrow B\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma \vdash A \rightarrow B\)}
+    \AxiomC{\(\Delta \vdash A\)}
+    \RightLabel{\(\rightarrow\)-E}
+    \BinaryInfC{\(\Gamma, \Delta \vdash B\)}
+  \end{prooftree}
+
+  \begin{prooftree}
+    \AxiomC{\(\Gamma \vdash A\)}
+    \AxiomC{\(\Delta \vdash B\)}
+    \RightLabel{\(\land\)-I}
+    \BinaryInfC{\(\Gamma, \Delta \vdash A \land B\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma \vdash A \land B\)}
+    \AxiomC{\(\Delta, A, B \vdash C\)}
+    \RightLabel{\(\land\)-E}
+    \BinaryInfC{\(\Gamma, \Delta \vdash C\)}
+  \end{prooftree}
+\end{frame}
+
+\begin{frame}{Proof of \(A \rightarrow B, A \vdash A \land B\)}
+  \centering
+  \begin{prooftree}
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(A \vdash A\)}
+
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(A \rightarrow B \vdash A \rightarrow B\)}
+
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(A \vdash A\)}
+
+    \RightLabel{\(\rightarrow\)-E}
+    \BinaryInfC{\(A \rightarrow B, A \vdash B\)}
+
+    \RightLabel{\(\land\)-I}
+    \BinaryInfC{\(A, A \rightarrow B, A \vdash A \land B\)}
+
+    \RightLabel{Exchange}
+    \UnaryInfC{\(A \rightarrow B, A, A \vdash A \land B\)}
+
+    \RightLabel{Contraction}
+    \UnaryInfC{\(A \rightarrow B, A \vdash A \land B\)}
+  \end{prooftree}
+\end{frame}
+
+\begin{frame}{Grammar of Typed Lambda Calculus}
+  \centering
+  \begin{bnf}
+    \(s,t,u,v,w\) ::= \(x\) : Variable
+    | \(\lambda x\ldotp s\) : Function Definition | \(s\ t\) : Function Application
+    | \((u, v)\) : Tuple Definition | let \((x, y) = t\); \(w\) : Tuple Destructuring
+  \end{bnf}
+
+  \vspace{2em}
+
+  \begin{bnf}
+    \(\tau, \pi, \omega\) ::= \(T\) : Base Type
+    | \(\tau \rightarrow \pi\) : Functions
+    | \(\pi \times \omega\) : Tuple
+  \end{bnf}
+\end{frame}
+
+\begin{frame}{Intuitionistic Types -- Judgement Rules}
+  \centering
+  \begin{prooftree}
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(x : \tau \vdash x : \tau\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Delta, \Gamma \vdash t : \tau\)}
+    \RightLabel{Exchange}
+    \UnaryInfC{\(\Gamma, \Delta \vdash t: \tau\)}
+  \end{prooftree}
+
+  \begin{prooftree}
+    \AxiomC{\(\Gamma, y : \tau, z : \tau \vdash u : \pi\)}
+    \RightLabel{Contraction}
+    \UnaryInfC{\(\Gamma, x : \tau \vdash u[x/y,x/z] : \pi\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma \vdash s : \pi\)}
+    \RightLabel{Weakening}
+    \UnaryInfC{\(\Gamma, x : \tau \vdash s : \pi\)}
+  \end{prooftree}
+
+  \begin{prooftree}
+    \AxiomC{\(\Gamma, x : \tau \vdash t : \pi\)}
+    \RightLabel{\(\rightarrow\)-I}
+    \UnaryInfC{\(\Gamma \vdash \lambda x\ldotp t : \tau \rightarrow \pi\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma \vdash s : \tau \rightarrow \pi\)}
+    \AxiomC{\(\Delta \vdash t : \tau\)}
+    \RightLabel{\(\rightarrow\)-E}
+    \BinaryInfC{\(\Gamma, \Delta \vdash s\ t : \pi\)}
+  \end{prooftree}
+
+  \begin{prooftree}
+    \AxiomC{\(\Gamma \vdash u : \tau\)}
+    \AxiomC{\(\Delta \vdash v : \pi\)}
+    \RightLabel{\(\times\)-I}
+    \BinaryInfC{\(\Gamma, \Delta \vdash (u, v) : \tau \times \pi\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma \vdash t : \tau \times \pi\)}
+    \AxiomC{\(\Delta, x : \tau, y : \pi \vdash w : \omega\)}
+    \RightLabel{\(\times\)-E}
+    \BinaryInfC{\(\Gamma, \Delta \vdash \text{ let } (x, y) = t; w : \omega\)}
+  \end{prooftree}
+
+  {\small The notation \(u[x/y,x/z]\) means to replace all occurrences of \(y\) and \(z\) in \(u\) by \(x\).}
+\end{frame}
+
+\begin{frame}{Intuitionistic Logic vs Intuitionistic Types}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \centering
+      \textbf{Intuitionistic Logic}
+
+      \vspace{3mm}
+      \begin{prooftree}
+        \AxiomC{\(\Gamma \vdash A \rightarrow B\)}
+        \AxiomC{\(\Delta \vdash A\)}
+        \RightLabel{\(\rightarrow\)-E}
+        \BinaryInfC{\(\Gamma, \Delta \vdash B\)}
+      \end{prooftree}
+    \end{column}
+
+    \begin{column}{0.5\textwidth}
+      \centering
+      \textbf{Intuitionistic Types}
+
+      \vspace{3mm}
+      \begin{prooftree}
+        \AxiomC{\(\Gamma \vdash s : \tau \rightarrow \pi\)}
+        \AxiomC{\(\Delta \vdash t : \tau\)}
+        \RightLabel{\(\rightarrow\)-E}
+        \BinaryInfC{\(\Gamma, \Delta \vdash s\ t : \pi\)}
+      \end{prooftree}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Proof of \(f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\)}
+  \centering
+  \begin{prooftree}
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(z : \tau \vdash z : \tau\)}
+
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(f : \tau \rightarrow \pi \vdash f : \tau \rightarrow \pi\)}
+
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(y : \tau \vdash y : \tau\)}
+
+    \RightLabel{\(\rightarrow\)-E}
+    \BinaryInfC{\(f : \tau \rightarrow \pi, z : \tau \vdash f\ z : \pi\)}
+
+    \RightLabel{\(\times\)-I}
+    \BinaryInfC{\(y : \tau, f : \tau \rightarrow \pi, z : \tau \vdash (y, f\ z) : \tau \times \pi\)}
+
+    \RightLabel{Exchange}
+    \UnaryInfC{\(f : \tau \rightarrow \pi, y : \tau, z : \tau \vdash (y, f\ z) : \tau \times \pi\)}
+
+    \RightLabel{Contraction}
+    \UnaryInfC{\(f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\)}
+  \end{prooftree}
+
+  \pause
+
+  \hrule
+
+  \begin{prooftree}
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(A \vdash A\)}
+
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(A \rightarrow B \vdash A \rightarrow B\)}
+
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(A \vdash A\)}
+
+    \RightLabel{\(\rightarrow\)-E}
+    \BinaryInfC{\(A \rightarrow B, A \vdash B\)}
+
+    \RightLabel{\(\land\)-I}
+    \BinaryInfC{\(A, A \rightarrow B, A \vdash A \land B\)}
+
+    \RightLabel{Exchange}
+    \UnaryInfC{\(A \rightarrow B, A, A \vdash A \land B\)}
+
+    \RightLabel{Contraction}
+    \UnaryInfC{\(A \rightarrow B, A \vdash A \land B\)}
+  \end{prooftree}
+\end{frame}
+
+\begin{frame}{Linear Logic}
+  \centering
+
+  \begin{prooftree}
+    \AxiomC{\(\Gamma, A, A \vdash B\)}
+    \RightLabel{Contraction}
+    \UnaryInfC{\(\Gamma, A \vdash B\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma \vdash B\)}
+    \RightLabel{Weakening}
+    \UnaryInfC{\(\Gamma, A \vdash B\)}
+  \end{prooftree}
+
+  \pause
+
+  \hrule
+
+  \begin{columns}
+    \begin{column}{0.4\textwidth}
+      \begin{itemize}
+        \item \(A = \text{"I have 60 rupees"}\)
+          \pause
+        \item \(B = \text{"I can buy 30 arrows"}\)
+          \pause
+        \item \(C = \text{"I can buy a Deku Shield"}\)
+      \end{itemize}
+    \end{column}
+    \pause
+    \begin{column}{0.5\textwidth}
+      \begin{tblr}{
+          colspec = {X[1,c,h] X[2,c,m] X[2,c,m]},
+          vline{3} = {2,3}{solid},
+        }
+        \SetCell[c=2]{c} \textbf{Shop} & & Price (Rupees) \\
+        \includegraphics[width=2.5em]{OOT-arrows} & Arrows (30) & 60 \\
+        \hline
+        \includegraphics[width=2.5em]{OOT-shield} & Deku Shield & 40 \\
+      \end{tblr}
+    \end{column}
+  \end{columns}
+
+  \pause
+
+  \hrule
+
+  \begin{prooftree}
+    \AxiomC{\(A \vdash B\)}
+    \AxiomC{\(A \vdash C\)}
+    \RightLabel{\(\land\)-I}
+    \BinaryInfC{\(A, A \vdash B \land C\)}
+    \RightLabel{Contraction}
+    \UnaryInfC{\(A \vdash B \land C\)}
+  \end{prooftree}
+\end{frame}
+
+\end{document}

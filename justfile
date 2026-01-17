@@ -1,7 +1,8 @@
-build watch_flag="":
-    latexmk {{watch_flag}}
+build args="":
+    latexmk {{args}}
 
-watch: (build "-pvc")
+watch: (build "-pvc paper.tex")
+watch-slides: (build "-pvc slides.tex")
 
 clean:
     latexmk -C

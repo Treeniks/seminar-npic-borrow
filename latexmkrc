@@ -1,4 +1,4 @@
-@default_files = ("paper.tex");
+@default_files = ("paper.tex", "slides.tex");
 
 $pdf_mode = 1;
 $pdflatex = "pdflatex -halt-on-error %O %S";
