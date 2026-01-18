@@ -1,3 +1,8 @@
+\RequirePackage{xstring}
+\IfEndWith{\jobname}{\detokenize{-handout}}{
+    \PassOptionsToClass{handout}{beamer}
+}{}
+
 \documentclass[aspectratio=169,onlytextwidth]{beamer}
 
 \usepackage[utf8]{inputenc}
