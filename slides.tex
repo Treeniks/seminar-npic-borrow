@@ -353,7 +353,7 @@
 
 \subsection{Ownership and Move Semantics}
 
-\begin{frame}[fragile]{Rust -- Onwership and Move Semantics}
+\begin{frame}[fragile]{Rust -- Ownership and Move Semantics}
   \centering
 
   \begin{lst}{rust}
@@ -365,9 +365,9 @@
   \end{lst}
 
   \begin{lst}{rust}
-    let x = Box::alloc(1);
-    let y = x; // value gets moved into y
-    Box::store(x, 2); // $\text{\Lightning}$
+    let b = Box::alloc(1);
+    let c = b; // value gets moved into y
+    Box::store(b, 2); // $\text{\Lightning}$
   \end{lst}
 
   \pause
@@ -377,27 +377,6 @@
     \item Owner can change (move).
   \end{itemize}
 \end{frame}
-
-% \begin{frame}[fragile]{Rust -- Drop}
-%   \centering
-%
-%   \begin{lst}{rust}
-%     struct Box<T: Copy> { ... }
-%     impl<T: Copy> Box<T> {
-%       fn alloc(v: T) -> Self {}   fn load(b: Self) -> (Self, T) {}
-%                                   fn store<T>(b: Self, v: T) -> Self {}
-%     }
-%     impl<T: Copy> Drop for Box<T> { fn drop(...) ... }
-%   \end{lst}
-%
-%   \begin{lst}{rust}
-%     fn main() {
-%       let b0 = Box::alloc(1);
-%       let (b1, v) = Box::load(b0);
-%       |\onslide<2->|drop(b1);|\onslide<1->|
-%     }
-%   \end{lst}
-% \end{frame}
 
 \subsection{Borrowing}
 
@@ -549,14 +528,41 @@
 %   \onslide<1->
 % \end{frame}
 
-\subsection{Polonius}
+\begin{frame}{Overview}
+  \tableofcontents
+\end{frame}
+
+\section*{Extra}
+
+\subsection*{Drop}
+
+\begin{frame}[fragile]{Rust -- Drop}
+  \centering
+
+  \begin{lst}{rust}
+    struct Box<T: Copy> { ... }
+    impl<T: Copy> Box<T> {
+      fn alloc(v: T) -> Self {}   fn load(b: &Self) -> T {}
+                                  fn store(b: &mut Self, v: T) {}
+    }
+    |\onslide<2->|impl<T: Copy> Drop for Box<T> { fn drop(...) ... }|\onslide<1->|
+  \end{lst}
+
+  \begin{lst}{rust}
+    fn main() {
+      let b0 = Box::alloc(1);
+      let (b1, v) = Box::load(b0);
+      |\onslide<3->|drop(b1); // implicit
+    |\onslide<1->|}
+  \end{lst}
+\end{frame}
+
+\subsection*{Polonius}
 
 \begin{frame}[fragile]{Polonius}
   \begin{lst}{rust}
-    fn get_or_insert<'a>(
-      map: &'a mut HashMap<usize, usize>,
-      key: usize,
-    ) -> &'a usize {
+    fn get_or_insert<'a>(map: &'a mut HashMap<usize, usize>, key: usize)
+        -> &'a usize {
       match map.get(&key) {
         Some(v) => v,
         None => { map.insert(key, 42); &map[&key] }
@@ -571,10 +577,6 @@
       println!("{v}");
     }
   \end{lst}
-\end{frame}
-
-\begin{frame}{Overview}
-  \tableofcontents
 \end{frame}
 
 \end{document}
