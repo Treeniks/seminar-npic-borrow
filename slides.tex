@@ -285,7 +285,7 @@
 
   \onslide<2->
 
-  \begin{lst}[minted options = {escapeinside=||}]{rust}
+  \begin{lst}{rust}
     struct Box<T|\onslide<3->|: Copy|\onslide<2->|> { ... }
     |\onslide<4->|impl<T: Copy> Box<T> {
       |\onslide<5->|fn alloc(v: T) -> Self {}   fn load(b: Self) -> T {}
@@ -322,7 +322,7 @@
 \begin{frame}[fragile]{Linear Types}{Capability-Passing Style}
   \centering
 
-  \begin{lst}[minted options = {escapeinside=||}]{rust}
+  \begin{lst}{rust}
     struct Box<T: Copy> { ... }
     impl<T: Copy> Box<T> {
       fn alloc(v: T) -> Self {}   fn load(b: Self) -> |\onslide<2->|(Self, |\onslide<1->|T|\onslide<2->|)|\onslide<1->| {}
@@ -348,7 +348,7 @@
 \begin{frame}[fragile]{Rust -- Onwership and Move Semantics}
   \centering
 
-  \begin{lst}[minted options = {escapeinside=||}]{rust}
+  \begin{lst}{rust}
     struct Box<T: Copy> { ... }
     impl<T: Copy> Box<T> {
       fn alloc(v: T) -> Self {}   fn load(b: Self) -> (Self, T) {}
@@ -373,7 +373,7 @@
 % \begin{frame}[fragile]{Rust -- Drop}
 %   \centering
 %
-%   \begin{lst}[minted options = {escapeinside=||}]{rust}
+%   \begin{lst}{rust}
 %     struct Box<T: Copy> { ... }
 %     impl<T: Copy> Box<T> {
 %       fn alloc(v: T) -> Self {}   fn load(b: Self) -> (Self, T) {}
@@ -394,7 +394,7 @@
 \subsection{Borrowing}
 
 \begin{frame}[fragile]{Rust -- Borrowing}
-  \begin{lst}[minted options = {escapeinside=||}]{rust}
+  \begin{lst}{rust}
     struct Box<T: Copy> { ... }
     impl<T: Copy> Box<T> {
       fn alloc(v: T) -> Self {}   fn load(b: |\onslide<2->|&|\onslide<1->|Self) -> T {}
@@ -427,7 +427,7 @@
   \centering
 
   \begin{onlyenv}<1-4>
-    \begin{lst}[minted options = {escapeinside=||}]{rust}
+    \begin{lst}{rust}
       fn get<T>(v: &Vec<T>, index: usize) -> |\onslide<3->|&|\onslide<1->|T {
         |\onslide<3->|&|\onslide<1->|v[index]
       }
@@ -435,7 +435,7 @@
   \end{onlyenv}
 
   \begin{onlyenv}<5->
-    \begin{lst}[minted options = {escapeinside=||}]{rust}
+    \begin{lst}{rust}
       fn get<'a, T>(v: &'a Vec<T>, index: usize) -> &'a T {
         &v[index]
       }
@@ -444,7 +444,7 @@
 
   \onslide<2->
 
-  \begin{lst}[minted options = {escapeinside=||}]{rust}
+  \begin{lst}{rust}
     let mut v = vec![Box::alloc(1), Box::alloc(2)];
     let x: |\onslide<3->|&|\onslide<2->|Box<usize> = get(&v, 1); |\tikzmark{lifetime-begin}|
     |\onslide<4->|v.clear();
@@ -468,7 +468,7 @@
 %   \centering
 %
 %   \begin{onlyenv}<1>
-%     \begin{lst}[minted options = {escapeinside=||}]{rust}
+%     \begin{lst}{rust}
 %       struct Box<T: Copy> { ... }
 %       impl<T: Copy> Box<T> {
 %         fn alloc(v: T) -> Self {}   fn load(b: &Self) -> T {}
@@ -478,7 +478,7 @@
 %   \end{onlyenv}
 %
 %   \begin{onlyenv}<2->
-%     \begin{lst}[minted options = {escapeinside=||}]{rust}
+%     \begin{lst}{rust}
 %       struct Box<T> { ... }
 %       impl<T> Box<T> {
 %         fn alloc(v: T) -> Self {}   fn load(b: &Self) -> T {}
@@ -500,7 +500,7 @@
 %   \centering
 %
 %   \begin{onlyenv}<1,2>
-%     \begin{lst}[minted options = {escapeinside=||}]{rust}
+%     \begin{lst}{rust}
 %       struct Box<T> { ... }
 %       impl<T> Box<T> {
 %         fn alloc(v: T) -> Self {}   fn load(b: &Self) -> |\onslide<2->|&|\onslide<1->|T {}
@@ -510,7 +510,7 @@
 %   \end{onlyenv}
 %
 %   \begin{onlyenv}<3->
-%     \begin{lst}[minted options = {escapeinside=||}]{rust}
+%     \begin{lst}{rust}
 %       struct Box<T> { ... }
 %       impl<T> Box<T> {
 %         fn alloc(v: T) -> Self {}   fn load<'a>(b: &'a Self) -> &'a T {}
@@ -540,5 +540,33 @@
 %
 %   \onslide<1->
 % \end{frame}
+
+\subsection{Polonius}
+
+\begin{frame}[fragile]{Polonius}
+  \begin{lst}{rust}
+    fn get_or_insert<'a>(
+      map: &'a mut HashMap<usize, usize>,
+      key: usize,
+    ) -> &'a usize {
+      match map.get(&key) {
+        Some(v) => v,
+        None => { map.insert(key, 42); &map[&key] }
+      }
+    }
+  \end{lst}
+
+  \begin{lst}{rust}
+    fn main() {
+      let mut map = HashMap::new();
+      let v = get_or_insert(&mut map, 69);
+      println!("{v}");
+    }
+  \end{lst}
+\end{frame}
+
+\begin{frame}{Overview}
+  \tableofcontents
+\end{frame}
 
 \end{document}
