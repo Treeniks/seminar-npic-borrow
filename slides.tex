@@ -429,7 +429,7 @@
   \begin{onlyenv}<1-4>
     \begin{lst}[minted options = {escapeinside=||}]{rust}
       fn get<T>(v: &Vec<T>, index: usize) -> |\onslide<3->|&|\onslide<1->|T {
-          &v[index]
+        |\onslide<3->|&|\onslide<1->|v[index]
       }
     \end{lst}
   \end{onlyenv}
@@ -437,7 +437,7 @@
   \begin{onlyenv}<5->
     \begin{lst}[minted options = {escapeinside=||}]{rust}
       fn get<'a, T>(v: &'a Vec<T>, index: usize) -> &'a T {
-          &v[index]
+        &v[index]
       }
     \end{lst}
   \end{onlyenv}
