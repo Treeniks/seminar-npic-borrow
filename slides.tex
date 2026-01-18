@@ -13,7 +13,7 @@
 \usetikzlibrary{tikzmark, calc, arrows.meta}
 
 \usepackage{minted}
-\setminted{autogobble, numbersep=0.5em, escapeinside=||}
+\setminted{autogobble, numbersep=0.5em}
 \usemintedstyle{friendly}
 
 \usepackage{tcolorbox}
@@ -88,7 +88,10 @@
   boxsep = 2pt,
   boxrule = 1pt,
   arc = 5pt,
-  listing only, minted language = #2, #1
+  listing only,
+  minted language = #2,
+  minted options = {escapeinside=||,mathescape},
+  #1
 }
 
 \title{Linear Types and a Lifetime of Borrows}
@@ -303,7 +306,7 @@
 
   \begin{columns}
     \begin{column}{0.48\textwidth}
-      \begin{lst}[minted options = {mathescape}]{rust}
+      \begin{lst}{rust}
         let b = Box::alloc(1);
         Box::free(b);
         let v = Box::load(b); // $\text{\Lightning}$
@@ -313,7 +316,7 @@
     \onslide<7->
 
     \begin{column}{0.48\textwidth}
-      \begin{lst}[minted options = {mathescape}]{rust}
+      \begin{lst}{rust}
         let b = Box::alloc(1);
         let v = Box::load(b);
         Box::free(b); // $\text{\Lightning}$
@@ -337,7 +340,7 @@
 
   \onslide<3->
 
-  \begin{lst}[minted options = {mathescape}]{rust}
+  \begin{lst}{rust}
     let b0 = Box::alloc(1);
     let (b1, v) = Box::load(b0);
     Box::free(b1); // $\checkmark$
@@ -361,7 +364,7 @@
     }
   \end{lst}
 
-  \begin{lst}[minted options = {mathescape}]{rust}
+  \begin{lst}{rust}
     let x = Box::alloc(1);
     let y = x; // value gets moved into y
     Box::store(x, 2); // $\text{\Lightning}$
@@ -387,7 +390,7 @@
 %     impl<T: Copy> Drop for Box<T> { fn drop(...) ... }
 %   \end{lst}
 %
-%   \begin{lst}[minted options = {mathescape}]{rust}
+%   \begin{lst}{rust}
 %     fn main() {
 %       let b0 = Box::alloc(1);
 %       let (b1, v) = Box::load(b0);
@@ -493,7 +496,7 @@
 %   \end{onlyenv}
 %
 %   \onslide<3->
-%   \begin{lst}[minted options = {mathescape}]{rust}
+%   \begin{lst}{rust}
 %     let x = Box::alloc(Vec::new());
 %     let v = Box::load(&x); // $\text{\Lightning}$
 %   \end{lst}
@@ -525,7 +528,7 @@
 %   \end{onlyenv}
 %
 %   \onslide<3->
-%   \begin{lst}[minted options = {mathescape}]{rust}
+%   \begin{lst}{rust}
 %     let x = Box::alloc(1);
 %     let v: &usize = Box::load(&x); |\tikzmark{lifetime-begin}|
 %     Box::store(&mut x, 2);
