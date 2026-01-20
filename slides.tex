@@ -16,7 +16,7 @@
 \setminted{autogobble, numbersep=0.5em}
 \usemintedstyle{friendly}
 
-\usepackage{tcolorbox}
+\usepackage[most]{tcolorbox}
 \tcbuselibrary{minted}
 
 \usepackage{bussproofs}
@@ -83,8 +83,9 @@
 }
 
 \newtcblisting{lst}[2][]{
-  colframe = tumblue!20!white,
-  colback = tumblue!5!white,
+  enhanced,
+  colframe = tumblue,
+  colback = tumblue!2!white,
   boxsep = 2pt,
   boxrule = 1pt,
   arc = 5pt,
