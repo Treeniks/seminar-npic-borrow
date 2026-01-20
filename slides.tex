@@ -393,9 +393,9 @@
   \onslide<3->
 
   \begin{lst}{rust}
-    let x = Box::alloc(1);
-    let v = Box::load(&x); // immutably borrows x
-    Box::store(&mut x, 2); // mutably borrows x
+    let b = Box::alloc(1);
+    let v = Box::load(&b); // immutably borrows x
+    Box::store(&mut b, 2); // mutably borrows x
   \end{lst}
 
   \onslide<4->
