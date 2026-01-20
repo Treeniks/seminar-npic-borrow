@@ -239,10 +239,10 @@
           colspec = {X[1,c,h] X[2,c,m] X[2,c,m]},
           vline{3} = {2,3}{solid},
         }
-        \SetCell[c=2]{c} \textbf{Shop} & & Price (Rupees) \\
-        \includegraphics[width=2.5em]{OOT-arrows} & Arrows (30) & 60 \\
+          \SetCell[c=2]{c} \textbf{Shop} & & Price \\
+        \includegraphics[width=2.5em]{OOT-arrows} & Arrows (30) & 60 \raisebox{-0.5em}{\includegraphics[width=1em]{green-rupee}} \\
         \hline
-        \includegraphics[width=2.5em]{OOT-shield} & Deku Shield & 40 \\
+        \includegraphics[width=2.5em]{OOT-shield} & Deku Shield & 40 \raisebox{-0.5em}{\includegraphics[width=1em]{green-rupee}} \\
       \end{tblr}
     \end{column}
   \end{columns}
@@ -271,6 +271,10 @@
       \end{prooftree}
     \end{column}
   \end{columns}
+
+  \onslide<5->
+  \vspace{1cm}
+  {\footnotesize Images from \url{https://www.zeldadungeon.net}}
 \end{frame}
 
 \subsection{Linear Types}
