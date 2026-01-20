@@ -367,7 +367,7 @@
 
   \begin{lst}{rust}
     let b = Box::alloc(1);
-    let c = b; // value gets moved into y
+    let c = b; // value gets moved into c
     Box::store(b, 2); // $\text{\Lightning}$
   \end{lst}
 
@@ -394,8 +394,8 @@
 
   \begin{lst}{rust}
     let b = Box::alloc(1);
-    let v = Box::load(&b); // immutably borrows x
-    Box::store(&mut b, 2); // mutably borrows x
+    let v = Box::load(&b); // immutably borrows b
+    Box::store(&mut b, 2); // mutably borrows b
   \end{lst}
 
   \onslide<4->
