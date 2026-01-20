@@ -580,4 +580,158 @@
   \end{lst}
 \end{frame}
 
+\subsection*{Intuitionistic Types}
+
+\begin{frame}{Intuitionistic Types}{Grammar of Typed Lambda Calculus}
+  \centering
+  \begin{bnf}
+    \(s,t,u,v,w\) ::= \(x\) : Variable
+    | \(\lambda x\ldotp s\) : Function Definition | \(s\ t\) : Function Application
+    | \((u, v)\) : Tuple Definition | let \((x, y) = t\); \(w\) : Tuple Destructuring
+  \end{bnf}
+
+  \vspace{2em}
+
+  \begin{bnf}
+    \(\tau, \pi, \omega\) ::= \(T\) : Base Type
+    | \(\tau \rightarrow \pi\) : Functions
+    | \(\pi \times \omega\) : Tuple
+  \end{bnf}
+\end{frame}
+
+\begin{frame}{Intuitionistic Types}{Intuitionistic Types -- Judgement Rules}
+  \centering
+  \begin{prooftree}
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(x : \tau \vdash x : \tau\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Delta, \Gamma \vdash t : \tau\)}
+    \RightLabel{Exchange}
+    \UnaryInfC{\(\Gamma, \Delta \vdash t: \tau\)}
+  \end{prooftree}
+
+  \begin{prooftree}
+    \AxiomC{\(\Gamma, y : \tau, z : \tau \vdash u : \pi\)}
+    \RightLabel{Contraction}
+    \UnaryInfC{\(\Gamma, x : \tau \vdash u[x/y,x/z] : \pi\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma \vdash s : \pi\)}
+    \RightLabel{Weakening}
+    \UnaryInfC{\(\Gamma, x : \tau \vdash s : \pi\)}
+  \end{prooftree}
+
+  \begin{prooftree}
+    \AxiomC{\(\Gamma, x : \tau \vdash t : \pi\)}
+    \RightLabel{\(\rightarrow\)-I}
+    \UnaryInfC{\(\Gamma \vdash \lambda x\ldotp t : \tau \rightarrow \pi\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma \vdash s : \tau \rightarrow \pi\)}
+    \AxiomC{\(\Delta \vdash t : \tau\)}
+    \RightLabel{\(\rightarrow\)-E}
+    \BinaryInfC{\(\Gamma, \Delta \vdash s\ t : \pi\)}
+  \end{prooftree}
+
+  \begin{prooftree}
+    \AxiomC{\(\Gamma \vdash u : \tau\)}
+    \AxiomC{\(\Delta \vdash v : \pi\)}
+    \RightLabel{\(\times\)-I}
+    \BinaryInfC{\(\Gamma, \Delta \vdash (u, v) : \tau \times \pi\)}
+    \DisplayProof\qquad
+    \AxiomC{\(\Gamma \vdash t : \tau \times \pi\)}
+    \AxiomC{\(\Delta, x : \tau, y : \pi \vdash w : \omega\)}
+    \RightLabel{\(\times\)-E}
+    \BinaryInfC{\(\Gamma, \Delta \vdash \text{ let } (x, y) = t; w : \omega\)}
+  \end{prooftree}
+
+  {\small The notation \(u[x/y,x/z]\) means to replace all occurrences of \(y\) and \(z\) in \(u\) by \(x\).}
+\end{frame}
+
+\begin{frame}{Intuitionistic Types}{Intuitionistic Logic vs Intuitionistic Types}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \centering
+      \textbf{Intuitionistic Logic}
+
+      \vspace{3mm}
+      \begin{prooftree}
+        \AxiomC{\(\Gamma \vdash A \rightarrow B\)}
+        \AxiomC{\(\Delta \vdash A\)}
+        \RightLabel{\(\rightarrow\)-E}
+        \BinaryInfC{\(\Gamma, \Delta \vdash B\)}
+      \end{prooftree}
+    \end{column}
+
+    \begin{column}{0.5\textwidth}
+      \centering
+      \textbf{Intuitionistic Types}
+
+      \vspace{3mm}
+      \begin{prooftree}
+        \AxiomC{\(\Gamma \vdash s : \tau \rightarrow \pi\)}
+        \AxiomC{\(\Delta \vdash t : \tau\)}
+        \RightLabel{\(\rightarrow\)-E}
+        \BinaryInfC{\(\Gamma, \Delta \vdash s\ t : \pi\)}
+      \end{prooftree}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Intuitionistic Types}{Proof of \(f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\)}
+  \centering
+  \begin{prooftree}
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(z : \tau \vdash z : \tau\)}
+
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(f : \tau \rightarrow \pi \vdash f : \tau \rightarrow \pi\)}
+
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(y : \tau \vdash y : \tau\)}
+
+    \RightLabel{\(\rightarrow\)-E}
+    \BinaryInfC{\(f : \tau \rightarrow \pi, z : \tau \vdash f\ z : \pi\)}
+
+    \RightLabel{\(\times\)-I}
+    \BinaryInfC{\(y : \tau, f : \tau \rightarrow \pi, z : \tau \vdash (y, f\ z) : \tau \times \pi\)}
+
+    \RightLabel{Exchange}
+    \UnaryInfC{\(f : \tau \rightarrow \pi, y : \tau, z : \tau \vdash (y, f\ z) : \tau \times \pi\)}
+
+    \RightLabel{Contraction}
+    \UnaryInfC{\(f : \tau \rightarrow \pi, x : \tau \vdash (x, f\ x) : \tau \times \pi\)}
+  \end{prooftree}
+
+  \hrule
+
+  \begin{prooftree}
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(A \vdash A\)}
+
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(A \rightarrow B \vdash A \rightarrow B\)}
+
+    \AxiomC{}
+    \RightLabel{Id}
+    \UnaryInfC{\(A \vdash A\)}
+
+    \RightLabel{\(\rightarrow\)-E}
+    \BinaryInfC{\(A \rightarrow B, A \vdash B\)}
+
+    \RightLabel{\(\land\)-I}
+    \BinaryInfC{\(A, A \rightarrow B, A \vdash A \land B\)}
+
+    \RightLabel{Exchange}
+    \UnaryInfC{\(A \rightarrow B, A, A \vdash A \land B\)}
+
+    \RightLabel{Contraction}
+    \UnaryInfC{\(A \rightarrow B, A \vdash A \land B\)}
+  \end{prooftree}
+\end{frame}
+
 \end{document}
